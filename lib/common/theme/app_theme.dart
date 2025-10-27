@@ -32,6 +32,7 @@ class AppTheme {
         tertiary: colors.tertiary,
         background: colors.background,
         surface: colors.surface,
+        surfaceDim: colors.surfaceDim,
         error: colors.error,
         onPrimary: colors.onPrimary,
         onSecondary: colors.onSecondary,
@@ -91,7 +92,7 @@ class AppTheme {
       // Input Decoration (TextField)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colors.surfaceVariant,
+        fillColor: colors.surfaceDim,
         hintStyle: TextStyle(color: colors.onSurfaceVariant),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -131,6 +132,7 @@ class AppTheme {
         tertiary: colors.tertiary,
         background: colors.background,
         surface: colors.surface,
+        surfaceDim: colors.surfaceDim,
         error: colors.error,
         onPrimary: colors.onPrimary,
         onSecondary: colors.onSecondary,
@@ -184,7 +186,7 @@ class AppTheme {
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colors.surfaceVariant,
+        fillColor: colors.surfaceDim,
         hintStyle: TextStyle(color: colors.onSurfaceVariant),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

@@ -38,7 +38,12 @@ class _LightColors {
   // Backgrounds & Surfaces
   final Color background = const Color(0xFFF4DCC4); // App background (cream)
   final Color surface = const Color(0xFFFFFEFF); // Main surface (cards)
-  final Color surfaceVariant = const Color(0xFFF4F5F1); // Slight contrast
+  final Color surfaceDim = const Color.fromARGB(
+    255,
+    239,
+    239,
+    239,
+  ); // Slight contrast
   final Color blur = const Color(0x7FFFFEFF); // Frosted overlays
 
   // Text & Content
@@ -50,7 +55,7 @@ class _LightColors {
 
   // States
   final Color success = const Color(0xFF00C853);
-  final Color warning = const Color(0xFFFFC107);
+  final Color warning = const Color.fromRGBO(255, 193, 7, 1);
   final Color info = const Color(0xFF2196F3);
   final Color error = const Color(0xFFFF3030);
 
@@ -89,7 +94,7 @@ class _DarkColors {
   // Backgrounds & Surfaces
   final Color background = const Color(0xFF0D0402);
   final Color surface = const Color(0xFF141212);
-  final Color surfaceVariant = const Color(0xFF1D1B19);
+  final Color surfaceDim = const Color.fromARGB(255, 38, 37, 37);
   final Color blur = const Color(0x33141212); // For frosted overlays
 
   // Text & Content

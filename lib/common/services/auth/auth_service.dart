@@ -54,7 +54,7 @@ class AuthService {
 
   /// SIGN OUT
   Future<Either<String, void>> signOut() async {
-    try {
+  try {
       await _supabase.auth.signOut();
       return Right(null);
     } on AuthException catch (e) {

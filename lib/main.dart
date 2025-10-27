@@ -1,11 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:locally/auth_gate.dart';
+import 'package:locally/common/routes/app_routes.dart';
 import 'package:locally/common/theme/app_theme.dart';
-import 'package:locally/features/auth/presentation/auth_page.dart';
-import 'package:locally/features/home/presentation/home_page.dart';
 import 'package:locally/firebase_options.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -29,36 +28,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final supabase = Supabase.instance.client;
-
-    // Stream of auth changes
-    final authStream = supabase.auth.onAuthStateChange
-        .map((event) => event.session?.user)
-        .startWith(supabase.auth.currentUser);
+    // No need for StreamBuilder or manual streams here
 
     return MaterialApp(
       title: 'Locally',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.dark,
       debugShowCheckedModeBanner: false,
-      home: StreamBuilder<User?>(
-        stream: authStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          } else if (snapshot.hasError) {
-            return Scaffold(
-              body: Center(child: Text('Error: ${snapshot.error}')),
-            );
-          } else {
-            final user = snapshot.data;
-            return user != null ? const HomePage() : const AuthPage();
-          }
-        },
-      ),
+      routes: AppRoutes.routes,
+      initialRoute: AppRoutes.authGate,
     );
   }
 }
