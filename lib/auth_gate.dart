@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locally/common/providers/profile_provider.dart';
-import 'package:locally/features/setup/setup_page.dart';
+import 'package:locally/features/setup/pages/setup_page.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/providers/auth_providers.dart';

@@ -1,6 +1,6 @@
 name: locally
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
@@ -16,7 +16,9 @@ dependencies:
   fpdart: ^1.1.1
   # freezed_annotation: ^3.1.0
   rxdart: ^0.28.0
+  shared_preferences: ^2.5.3
   supabase_flutter: ^2.10.3
+  velocity_x: ^4.3.1
 
 dev_dependencies:
   flutter_test:
@@ -28,5 +30,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-assets:
-    - assets/images/
+  assets:
+    - assets/setup/
