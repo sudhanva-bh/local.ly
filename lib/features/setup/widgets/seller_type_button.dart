@@ -46,6 +46,7 @@ class _SellerTypeButtonState extends State<SellerTypeButton>
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          width: 150,
           decoration: BoxDecoration(
             color: widget.isSelected
                 ? colorScheme.primary

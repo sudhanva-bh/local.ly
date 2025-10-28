@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:locally/common/constants/file_paths.dart';
 import 'package:locally/common/models/users/seller_model.dart';
 import 'package:locally/features/setup/widgets/seller_type_button.dart';
 import 'package:velocity_x/velocity_x.dart';

@@ -1,7 +1,6 @@
 // lib/common/models/seller/seller.dart
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
-
 import 'package:locally/common/models/ratings/rating_model.dart';
 
 enum SellerType {
@@ -46,7 +45,7 @@ class Seller {
   final String? fcmToken;
 
   final String email;
-  final String? phonenNumber;
+  final String? phoneNumber;
   final String? profileImageUrl;
 
   final String shopName;
@@ -58,6 +57,7 @@ class Seller {
 
   final double? latitude;
   final double? longitude;
+  final String? address;
 
   final List<Rating>? ratings;
 
@@ -65,7 +65,7 @@ class Seller {
     required this.uid,
     this.fcmToken,
     required this.email,
-    this.phonenNumber,
+    this.phoneNumber,
     this.profileImageUrl,
     required this.shopName,
     this.productIds,
@@ -74,6 +74,7 @@ class Seller {
     this.updatedAt,
     this.latitude,
     this.longitude,
+    this.address,
     this.ratings,
   });
 
@@ -81,7 +82,7 @@ class Seller {
     String? uid,
     String? fcmToken,
     String? email,
-    String? phonenNumber,
+    String? phoneNumber,
     String? profileImageUrl,
     String? shopName,
     List<String>? productIds,
@@ -90,13 +91,14 @@ class Seller {
     DateTime? updatedAt,
     double? latitude,
     double? longitude,
+    String? address,
     List<Rating>? ratings,
   }) {
     return Seller(
       uid: uid ?? this.uid,
       fcmToken: fcmToken ?? this.fcmToken,
       email: email ?? this.email,
-      phonenNumber: phonenNumber ?? this.phonenNumber,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       shopName: shopName ?? this.shopName,
       productIds: productIds ?? this.productIds,
@@ -105,18 +107,18 @@ class Seller {
       updatedAt: updatedAt ?? this.updatedAt,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      address: address ?? this.address,
       ratings: ratings ?? this.ratings,
     );
   }
 
   /// Convert to a map suitable for storing in Supabase.
-  /// Uses ISO strings for datetimes and primitive-friendly collections.
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'id': uid, // use your primary key column name; commonly `id` or `uid`
+      'id': uid, // commonly the primary key
       'fcm_token': fcmToken,
       'email': email,
-      'phone_number': phonenNumber,
+      'phone_number': phoneNumber,
       'profile_image_url': profileImageUrl,
       'shop_name': shopName,
       'product_ids': productIds,
@@ -125,13 +127,12 @@ class Seller {
       'updated_at': updatedAt?.toIso8601String(),
       'latitude': latitude,
       'longitude': longitude,
-      // If Rating has toMap, convert to list of maps; else adapt to your schema
+      'address': address,
       'ratings': ratings?.map((r) => r.toMap()).toList(),
     };
   }
 
   factory Seller.fromMap(Map<String, dynamic> map) {
-    // Helper to parse DateTime from either int milliseconds or ISO string or timestamptz
     DateTime parseDate(dynamic v) {
       if (v == null) throw ArgumentError('createdAt is required');
       if (v is int) {
@@ -193,18 +194,10 @@ class Seller {
 
     return Seller(
       uid: (map['id'] ?? map['uid'] ?? map['uid_str']) as String,
-      fcmToken: (map['fcm_token'] ?? map['fcmToken'] ?? '') as String?,
+      fcmToken: (map['fcm_token'] ?? map['fcmToken']) as String?,
       email: (map['email'] ?? '') as String,
-      phonenNumber: map['phone_number'] != null
-          ? (map['phone_number'] as String)
-          : map['phonenNumber'] != null
-          ? (map['phonenNumber'] as String?)
-          : null,
-      profileImageUrl: map['profile_image_url'] != null
-          ? (map['profile_image_url'] as String)
-          : map['profileImageUrl'] != null
-          ? (map['profileImageUrl'] as String?)
-          : null,
+      phoneNumber: map['phone_number'] ?? map['phoneNumber'],
+      profileImageUrl: map['profile_image_url'] ?? map['profileImageUrl'],
       shopName: (map['shop_name'] ?? map['shopName'] ?? '') as String,
       productIds: productIdsParsed,
       sellerType: SellerTypeX.fromValue(
@@ -214,6 +207,7 @@ class Seller {
       updatedAt: updated,
       latitude: lat,
       longitude: lon,
+      address: map['address'] ?? map['shop_address'] ?? '',
       ratings: ratingsParsed,
     );
   }
