@@ -45,6 +45,7 @@ class _LightColors {
     239,
   ); // Slight contrast
   final Color blur = const Color(0x7FFFFEFF); // Frosted overlays
+  final Color shadow = const Color.fromARGB(172, 24, 24, 24);
 
   // Text & Content
   final Color onPrimary = const Color(0xFFFFFFFF);

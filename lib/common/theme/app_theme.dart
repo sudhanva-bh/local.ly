@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 /// Central Theme setup for Locally
@@ -211,7 +212,8 @@ class AppTheme {
   // 📄 TEXT THEME
   // ─────────────────────────────
   static TextTheme _textTheme(dynamic colors) {
-    return TextTheme(
+    // Create your base text theme
+    final base = TextTheme(
       displayLarge: TextStyle(
         color: colors.onBackground,
         fontSize: 32,
@@ -236,5 +238,8 @@ class AppTheme {
         fontWeight: FontWeight.w500,
       ),
     );
+
+    // Apply the Manrope font to all text styles
+    return GoogleFonts.manropeTextTheme(base);
   }
 }

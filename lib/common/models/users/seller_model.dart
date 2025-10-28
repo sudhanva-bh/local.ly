@@ -30,6 +30,15 @@ extension SellerTypeX on SellerType {
         return SellerType.retailSeller;
     }
   }
+
+  String toWords() {
+    switch (this) {
+      case SellerType.wholesaleSeller:
+        return 'Wholesale Seller';
+      case SellerType.retailSeller:
+        return 'Retail Seller';
+    }
+  }
 }
 
 class Seller {
@@ -134,7 +143,9 @@ class Seller {
       }
     }
 
-    DateTime created = parseDate(map['created_at'] ?? map['createdAt'] ?? map['createdAtMillis']);
+    DateTime created = parseDate(
+      map['created_at'] ?? map['createdAt'] ?? map['createdAtMillis'],
+    );
 
     DateTime? updated;
     if (map['updated_at'] != null) {
@@ -187,17 +198,18 @@ class Seller {
       phonenNumber: map['phone_number'] != null
           ? (map['phone_number'] as String)
           : map['phonenNumber'] != null
-              ? (map['phonenNumber'] as String?)
-              : null,
+          ? (map['phonenNumber'] as String?)
+          : null,
       profileImageUrl: map['profile_image_url'] != null
           ? (map['profile_image_url'] as String)
           : map['profileImageUrl'] != null
-              ? (map['profileImageUrl'] as String?)
-              : null,
+          ? (map['profileImageUrl'] as String?)
+          : null,
       shopName: (map['shop_name'] ?? map['shopName'] ?? '') as String,
       productIds: productIdsParsed,
       sellerType: SellerTypeX.fromValue(
-          (map['seller_type'] ?? map['sellerType'])?.toString()),
+        (map['seller_type'] ?? map['sellerType'])?.toString(),
+      ),
       createdAt: created,
       updatedAt: updated,
       latitude: lat,
