@@ -5,7 +5,10 @@ import 'package:intl/intl.dart'; // Import for date formatting
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/models/users/seller_model.dart';
-import 'package:locally/common/providers/auth_providers.dart';
+// 🛑 FIX: This provider is not used here, but the controller is.
+// import 'package:locally/common/providers/auth_providers.dart';
+// ✅ NEW: Import for the AuthController we created
+import 'package:locally/features/auth/controllers/auth_controller.dart';
 import 'package:locally/common/routes/app_routes.dart';
 import 'package:locally/common/widgets/location_picker.dart';
 import 'package:locally/features/wholesale_seller/profile_page/controllers/profile_controller.dart';
@@ -272,8 +275,25 @@ class ProfileBody extends ConsumerWidget {
             else
               const Text('No ratings yet'),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
 
+            // ✅ --- NEW SIGN OUT BUTTON ---
+            if (isCurrentUser)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: TextButton.icon(
+                  icon: const Icon(Icons.logout),
+                  label: const Text('Sign Out'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: colors.onSurface.withOpacity(0.7),
+                  ),
+                  onPressed: () async {
+                    await ref.read(authControllerProvider.notifier).signOut();
+                  },
+                ),
+              ),
+
+            // --- DELETE ACCOUNT BUTTON (Existing) ---
             if (isCurrentUser)
               ElevatedButton.icon(
                 icon: const Icon(Icons.delete_forever),
@@ -402,13 +422,11 @@ class ProfileBody extends ConsumerWidget {
             ),
           );
         }
-        
-        ref.watch(authServiceProvider).signOut();
 
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRoutes.authGate,
-          (route) => false,
-        );
+        // 🛑 FIX: REMOVED REDUNDANT/INCORRECT LOGIC
+        // ref.watch(authServiceProvider).signOut();  <-- WRONG
+        // Navigator.of(context).pushNamedAndRemoveUntil(...); <-- REDUNDANT
+        // The AppGate will handle navigation automatically.
       }
     });
   }

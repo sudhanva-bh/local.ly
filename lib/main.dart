@@ -21,6 +21,7 @@ void main() async {
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
+  await Supabase.instance.client.auth.signOut();
 
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -39,7 +40,7 @@ class MyApp extends ConsumerWidget {
       themeMode: themeMode,
       debugShowCheckedModeBanner: false,
       routes: AppRoutes.routes,
-      initialRoute: AppRoutes.authGate,
+      initialRoute: AppRoutes.appGate,
     );
   }
 }

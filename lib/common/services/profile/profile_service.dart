@@ -88,6 +88,7 @@ class ProfileService {
     try {
       // 'delete_current_user' is the name of the SQL function we created
       await _supabase.rpc('delete_current_user');
+      await _supabase.auth.signOut();
       return Right(null);
     } on PostgrestException catch (e) {
       return Left(e.message);

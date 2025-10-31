@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:locally/common/routes/app_routes.dart';
 import 'package:locally/common/widgets/bottom_navigator.dart';
-import 'package:locally/features/auth/controllers/auth_controller.dart';
-import 'package:locally/common/providers/theme_provider.dart';
 import 'package:locally/features/wholesale_seller/profile_page/pages/profile_page.dart';
 
 class WholesaleNavPage extends ConsumerStatefulWidget {

@@ -68,7 +68,7 @@ class _RegistrationFormState extends ConsumerState<RegistrationForm> {
       // Navigate after successful registration
       if (previous?.user == null && next.user != null) {
         Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRoutes.setupGate,
+          AppRoutes.appGate,
           (route) => false,
         );
       }

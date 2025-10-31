@@ -53,7 +53,7 @@ class _SignInFormState extends ConsumerState<SignInForm> {
       if (previous?.user == null && next.user != null) {
         // await Future.delayed(Duration(milliseconds: 1500));
         Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRoutes.setupGate,
+          AppRoutes.appGate,
           (route) => false,
         );
       }

@@ -156,7 +156,7 @@ class _SetupPageState extends ConsumerState<SetupPage> {
           // Navigate to AuthGate
           if (mounted) {
             Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoutes.sellerTypeGate, // route name
+              AppRoutes.appGate, // route name
               (route) => false, // remove all previous routes
             );
           }
