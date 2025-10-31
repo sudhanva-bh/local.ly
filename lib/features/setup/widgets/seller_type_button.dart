@@ -50,14 +50,22 @@ class _SellerTypeButtonState extends State<SellerTypeButton>
           decoration: BoxDecoration(
             color: widget.isSelected
                 ? colorScheme.primary
-                : colorScheme.surface,
-            borderRadius: BorderRadius.circular(16),
+                : colorScheme.surfaceContainer, // Changed for better contrast
+            borderRadius: BorderRadius.circular(12), // Softer radius
             border: Border.all(
               color: widget.isSelected
                   ? colorScheme.primary.withAlpha(155)
                   : colorScheme.outlineVariant,
               width: 1.2,
             ),
+            // Added subtle shadow for depth
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withOpacity(0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -73,9 +81,12 @@ class _SellerTypeButtonState extends State<SellerTypeButton>
                   fit: BoxFit.cover,
                 ),
               ),
-              const SizedBox(width: 12),
+              // Corrected SizedBox from width to height
+              const SizedBox(height: 12),
               Text(
                 widget.sellerType.toWords(),
+                // Added center alignment
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontWeight: widget.isSelected
                       ? FontWeight.bold

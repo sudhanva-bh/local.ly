@@ -1,12 +1,18 @@
+// lib/common/providers/profile_provider.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/models/users/seller_model.dart';
 import 'package:locally/common/providers/auth_providers.dart'; // Your auth providers
+import 'package:locally/common/providers/product_service_providers.dart';
 import 'package:locally/common/services/profile/profile_service.dart';
 
 /// Provides the ProfileService instance, depends on SupabaseClient
 final profileServiceProvider = Provider<ProfileService>((ref) {
   final client = ref.watch(supabaseClientProvider);
-  return ProfileService(client);
+  return ProfileService(
+    client,
+    wholesaleService: ref.watch(wholesaleProductServiceProvider),
+    retailService: ref.watch(retailProductServiceProvider),
+  );
 });
 
 /// == This is the main provider you'll use in the UI ==
@@ -38,8 +44,10 @@ final currentUserProfileProvider = StreamProvider<Seller?>((ref) {
 ///
 /// This is useful for viewing *other* sellers' profiles.
 /// Use `ref.watch(getProfileByIdProvider('some-user-id'))`
-final getProfileByIdProvider =
-    FutureProvider.family<Seller, String>((ref, uid) async {
+final getProfileByIdProvider = FutureProvider.family<Seller, String>((
+  ref,
+  uid,
+) async {
   final profileService = ref.watch(profileServiceProvider);
 
   // Call the service
@@ -47,7 +55,8 @@ final getProfileByIdProvider =
 
   // Handle the Either result
   return result.fold(
-    (failure) => throw failure, // The FutureProvider will expose this as an error
+    (failure) =>
+        throw failure, // The FutureProvider will expose this as an error
     (seller) => seller, // Success
   );
 });

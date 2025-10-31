@@ -6,12 +6,12 @@ class Rating {
 
   final int stars;
   final String title;
-  final String description;
+  final String? description;
   Rating({
     required this.ratingId,
     required this.stars,
     required this.title,
-    required this.description,
+    this.description,
   });
 
   Rating copyWith({

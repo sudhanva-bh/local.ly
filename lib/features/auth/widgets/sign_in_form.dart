@@ -4,6 +4,7 @@ import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/utilities/custom_snackbar.dart';
 import 'package:locally/features/auth/controllers/auth_controller.dart';
 import 'package:locally/features/auth/widgets/custom_text_field.dart';
+import 'package:locally/common/routes/app_routes.dart'; // for navigation
 
 class SignInForm extends ConsumerStatefulWidget {
   final VoidCallback toggleForm;
@@ -25,17 +26,37 @@ class _SignInFormState extends ConsumerState<SignInForm> {
     super.dispose();
   }
 
+  void _handleSignIn() {
+    final controller = ref.read(authControllerProvider.notifier);
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      CustomSnackbar.error(context, "Please enter both email and password");
+      return;
+    }
+
+    controller.signIn(email: email, password: password);
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(authControllerProvider);
-    final controller = ref.read(authControllerProvider.notifier);
 
-    // Use ref.listen for side effects
+    // Listen for auth changes only once (outside build cycles)
     ref.listen<AuthState>(authControllerProvider, (previous, next) {
-      if (next.errorMessage != null) {
+      if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
         CustomSnackbar.error(context, next.errorMessage!);
       }
-      // No navigation logic here!
+
+      // ✅ Navigate after successful login
+      if (previous?.user == null && next.user != null) {
+        // await Future.delayed(Duration(milliseconds: 1500));
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRoutes.setupGate,
+          (route) => false,
+        );
+      }
     });
 
     return SingleChildScrollView(
@@ -64,20 +85,15 @@ class _SignInFormState extends ConsumerState<SignInForm> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              onPressed: state.loading
-                  ? null
-                  : () {
-                      // Just call the controller.
-                      controller.signIn(
-                        email: emailController.text.trim(),
-                        password: passwordController.text.trim(),
-                      );
-                    },
+              onPressed: state.loading ? null : _handleSignIn,
               child: state.loading
                   ? const SizedBox(
                       height: 16,
                       width: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : const Text(
                       "Sign In",

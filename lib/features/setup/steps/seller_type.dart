@@ -14,30 +14,34 @@ class SellerTypeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SellerTypeButton(
-            sellerType: SellerType.retailSeller,
-            isSelected: sellerType == SellerType.retailSeller,
-            onTapped: () {
-              switchSeller(SellerType.retailSeller);
-            },
-          ),
-          24.widthBox,
-          SellerTypeButton(
-            sellerType: SellerType.wholesaleSeller,
-            isSelected: sellerType == SellerType.wholesaleSeller,
-            onTapped: () {
-              switchSeller(SellerType.wholesaleSeller);
-            },
-          ),
-        ],
+    // Added padding for better spacing within the step
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SellerTypeButton(
+              sellerType: SellerType.retailSeller,
+              isSelected: sellerType == SellerType.retailSeller,
+              onTapped: () {
+                switchSeller(SellerType.retailSeller);
+              },
+            ),
+            24.widthBox,
+            SellerTypeButton(
+              sellerType: SellerType.wholesaleSeller,
+              isSelected: sellerType == SellerType.wholesaleSeller,
+              onTapped: () {
+                switchSeller(SellerType.wholesaleSeller);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

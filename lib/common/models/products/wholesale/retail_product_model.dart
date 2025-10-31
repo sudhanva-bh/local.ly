@@ -1,79 +1,69 @@
-// lib/common/models/products/wholesale_product_model.dart
+// lib/common/models/products/retail_product_model.dart
 import 'dart:convert';
 import 'package:locally/common/models/ratings/rating_model.dart';
 import 'package:locally/common/models/product_categories/product_categories.dart';
 
-class WholesaleProduct {
+class RetailProduct {
   final String productId;
-  final String shopId;
+  final String sellerId;
 
-  final int minOrderQuantity;
-  final int stock;
-
-  final String productName;
+  final String name;
   final String description;
   final ProductCategories category;
   final double price;
+  final double? discountedPrice;
+  final int stock;
   final List<String>? imageUrls;
-
-  final double latitude;
-  final double longitude;
-
   final List<Rating> ratings;
+
   final DateTime createdAt;
 
-  WholesaleProduct({
+  RetailProduct({
     required this.productId,
-    required this.shopId,
-    required this.minOrderQuantity,
-    required this.stock,
-    required this.productName,
+    required this.sellerId,
+    required this.name,
     required this.description,
     required this.category,
     required this.price,
+    this.discountedPrice,
+    required this.stock,
     this.imageUrls,
-    required this.latitude,
-    required this.longitude,
     required this.ratings,
     required this.createdAt,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'product_id': productId,
-      'shop_id': shopId,
-      'min_order_quantity': minOrderQuantity,
-      'stock': stock,
-      'product_name': productName,
+      'id': productId,
+      'seller_id': sellerId,
+      'name': name,
       'description': description,
       'category': category.name,
       'price': price,
+      'discounted_price': discountedPrice,
+      'stock': stock,
       'image_urls': imageUrls,
-      'latitude': latitude,
-      'longitude': longitude,
       'ratings': ratings.map((r) => r.toMap()).toList(),
       'created_at': createdAt.toIso8601String(),
     };
   }
 
-  factory WholesaleProduct.fromMap(Map<String, dynamic> map) {
-    return WholesaleProduct(
-      productId: map['product_id'],
-      shopId: map['shop_id'],
-      minOrderQuantity: map['min_order_quantity'],
-      stock: map['stock'],
-      productName: map['product_name'],
+  factory RetailProduct.fromMap(Map<String, dynamic> map) {
+    return RetailProduct(
+      productId: map['id'],
+      sellerId: map['seller_id'],
+      name: map['name'],
       description: map['description'],
       category: ProductCategories.values.firstWhere(
         (e) => e.name == map['category'],
         orElse: () => ProductCategories.tech,
       ),
       price: (map['price'] as num).toDouble(),
+      discountedPrice: (map['discounted_price'] as num?)?.toDouble(),
+      stock: map['stock'] ?? 0,
       imageUrls: map['image_urls'] != null
           ? List<String>.from(map['image_urls'])
           : null,
-      latitude: (map['latitude'] as num).toDouble(),
-      longitude: (map['longitude'] as num).toDouble(),
       ratings: (map['ratings'] as List<dynamic>? ?? [])
           .map((r) => Rating.fromMap(r as Map<String, dynamic>))
           .toList(),
@@ -82,6 +72,7 @@ class WholesaleProduct {
   }
 
   String toJson() => json.encode(toMap());
-  factory WholesaleProduct.fromJson(String source) =>
-      WholesaleProduct.fromMap(json.decode(source));
+
+  factory RetailProduct.fromJson(String source) =>
+      RetailProduct.fromMap(json.decode(source));
 }

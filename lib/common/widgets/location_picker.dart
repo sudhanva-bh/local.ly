@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
@@ -131,7 +132,7 @@ class _ModernLocationPickerState extends State<_ModernLocationPicker>
                   children: [
                     TileLayer(
                       urlTemplate:
-                          "https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=Oj7onhaXbrjwAaamFUMD",
+                          "https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=${dotenv.env["MAPTILER_API_KEY"]}",
                       userAgentPackageName: "com.example.app",
                     ),
                   ],
@@ -594,7 +595,7 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
                         children: [
                           TileLayer(
                             urlTemplate:
-                                "https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=Oj7onhaXbrjwAaamFUMD",
+                                "https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=${dotenv.env["MAPTILER_API_KEY"]}",
                             userAgentPackageName: "com.example.app",
                           ),
                           MarkerLayer(

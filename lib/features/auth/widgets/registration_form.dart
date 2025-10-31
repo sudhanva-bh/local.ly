@@ -5,6 +5,7 @@ import 'package:locally/common/theme/app_colors.dart';
 import 'package:locally/common/utilities/custom_snackbar.dart';
 import 'package:locally/features/auth/controllers/auth_controller.dart';
 import 'package:locally/features/auth/widgets/custom_text_field.dart';
+import 'package:locally/common/routes/app_routes.dart';
 
 class RegistrationForm extends ConsumerStatefulWidget {
   final VoidCallback toggleForm;
@@ -31,17 +32,46 @@ class _RegistrationFormState extends ConsumerState<RegistrationForm> {
     super.dispose();
   }
 
+  void _handleSignUp() {
+    final controller = ref.read(authControllerProvider.notifier);
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final confirm = confirmController.text.trim();
+
+    if (!isChecked) {
+      CustomSnackbar.show(
+        context,
+        message: "Please agree to Terms & Privacy Policy",
+      );
+      return;
+    }
+
+    if (password != confirm) {
+      CustomSnackbar.error(context, "Passwords do not match");
+      return;
+    }
+
+    controller.signUp(email: email, password: password);
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(authControllerProvider);
-    final controller = ref.read(authControllerProvider.notifier);
 
-    // Use ref.listen for "side effects" like Snackbars
+    // ✅ Single place for side effects
     ref.listen<AuthState>(authControllerProvider, (previous, next) {
-      if (next.errorMessage != null) {
+      // Show any errors
+      if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
         CustomSnackbar.error(context, next.errorMessage!);
       }
-      // No navigation logic here. AuthGate handles it!
+
+      // Navigate after successful registration
+      if (previous?.user == null && next.user != null) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRoutes.setupGate,
+          (route) => false,
+        );
+      }
     });
 
     return SingleChildScrollView(
@@ -68,6 +98,8 @@ class _RegistrationFormState extends ConsumerState<RegistrationForm> {
                 setState(() => showConfirmPassword = !showConfirmPassword),
           ),
           const SizedBox(height: 16),
+
+          // ✅ Terms and Privacy Policy Checkbox
           Row(
             children: [
               Checkbox(
@@ -106,6 +138,8 @@ class _RegistrationFormState extends ConsumerState<RegistrationForm> {
             ],
           ),
           const SizedBox(height: 16),
+
+          // ✅ Register Button
           SizedBox(
             width: double.infinity,
             height: 55,
@@ -117,37 +151,15 @@ class _RegistrationFormState extends ConsumerState<RegistrationForm> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              onPressed: state.loading
-                  ? null
-                  : () {
-                      // 1. Local validation
-                      if (!isChecked) {
-                        CustomSnackbar.show(
-                          context,
-                          message: "Please agree to Terms & Privacy Policy",
-                        );
-                        return;
-                      }
-
-                      if (passwordController.text != confirmController.text) {
-                        CustomSnackbar.error(
-                          context,
-                          "Passwords do not match",
-                        );
-                        return;
-                      }
-
-                      // 2. Just call the controller. That's it!
-                      controller.signUp(
-                        email: emailController.text.trim(),
-                        password: passwordController.text.trim(),
-                      );
-                    },
+              onPressed: state.loading ? null : _handleSignUp,
               child: state.loading
                   ? const SizedBox(
                       height: 16,
                       width: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : const Text(
                       "Register",
@@ -159,6 +171,8 @@ class _RegistrationFormState extends ConsumerState<RegistrationForm> {
             ),
           ),
           const SizedBox(height: 24),
+
+          // ✅ Toggle to Sign In
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

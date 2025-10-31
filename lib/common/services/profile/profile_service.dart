@@ -1,19 +1,27 @@
+// lib/common/services/profile/profile_service.dart
 import 'package:fpdart/fpdart.dart';
 import 'package:locally/common/models/users/seller_model.dart';
+import 'package:locally/common/services/products/retail_product_service.dart';
+import 'package:locally/common/services/products/wholesale_product_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileService {
   final SupabaseClient _supabase;
-  // Assumes your table is named 'profiles'
+  final WholesaleProductService _wholesaleService;
+  final RetailProductService _retailService;
+
   static const String _tableName = 'profiles';
 
-  ProfileService(this._supabase);
+  ProfileService(
+    this._supabase, {
+    required WholesaleProductService wholesaleService,
+    required RetailProductService retailService,
+  }) : _wholesaleService = wholesaleService,
+       _retailService = retailService;
 
-  /// CREATE
-  /// Creates a new seller profile. This is usually called right after sign-up.
+  /// CREATE — Create a new seller profile
   Future<Either<String, void>> createProfile(Seller seller) async {
     try {
-      // The Seller.toMap() function converts the model to a Supabase-friendly map
       await _supabase.from(_tableName).insert(seller.toMap());
       return Right(null);
     } on PostgrestException catch (e) {
@@ -24,18 +32,15 @@ class ProfileService {
   }
 
   /// READ (Single)
-  /// Fetches a single seller profile by their UID.
   Future<Either<String, Seller>> getProfile(String uid) async {
     try {
       final data = await _supabase
           .from(_tableName)
           .select()
           .eq('id', uid)
-          .single(); // .single() ensures we get exactly one row or it throws
-
+          .single();
       return Right(Seller.fromMap(data));
     } on PostgrestException catch (e) {
-      // Handle cases like "0 rows" or "multiple rows"
       if (e.code == 'PGRST116') {
         return Left('Profile not found.');
       }
@@ -46,13 +51,12 @@ class ProfileService {
   }
 
   /// UPDATE
-  /// Updates an existing seller profile.
   Future<Either<String, void>> updateProfile(Seller seller) async {
     try {
       await _supabase
           .from(_tableName)
           .update(seller.toMap())
-          .eq('id', seller.uid); // Match the user's ID
+          .eq('id', seller.uid);
       return Right(null);
     } on PostgrestException catch (e) {
       return Left(e.message);
@@ -61,28 +65,47 @@ class ProfileService {
     }
   }
 
-  /// READ (Stream)
-  /// Listens to real-time changes for a *specific* seller profile.
-  /// This is the stream you requested.
+  /// STREAM — Live updates to a user's profile
   Stream<Seller?> getProfileStream(String uid) {
     return _supabase
         .from(_tableName)
-        .stream(primaryKey: ['id']) // The primary key of your table
+        .stream(primaryKey: ['id'])
         .eq('id', uid)
-        .map((maps) {
-          // The stream returns a List<Map<String, dynamic>>
-          if (maps.isEmpty) {
-            // User exists, but has no profile row yet, or it was deleted
-            return null;
-          }
-          // Profile exists, map it to a Seller object
-          return Seller.fromMap(maps.first);
+        .map((rows) {
+          if (rows.isEmpty) return null;
+          return Seller.fromMap(rows.first);
         })
         .handleError((e) {
-          // Handle any potential stream errors
           print('Error in getProfileStream: $e');
-          // You could return null or re-throw
           return null;
         });
+  }
+
+  /// DELETE — Deletes the profile and all associated products
+  Future<Either<String, void>> deleteProfile(String sellerId) async {
+    try {
+      final profileData = await _supabase
+          .from(_tableName)
+          .select('seller_type')
+          .eq('id', sellerId)
+          .maybeSingle();
+
+      if (profileData == null) {
+        return Left('Profile not found');
+      }
+
+      final sellerType = profileData['seller_type'] as String?;
+
+      if (sellerType == 'wholesaleSeller') {
+        await _wholesaleService.deleteProductsBySeller(sellerId);
+      } else if (sellerType == 'retailSeller') {
+        await _retailService.deleteProductsBySeller(sellerId);
+      }
+
+      await _supabase.from(_tableName).delete().eq('id', sellerId);
+      return Right(null);
+    } catch (e) {
+      return Left(e.toString());
+    }
   }
 }
