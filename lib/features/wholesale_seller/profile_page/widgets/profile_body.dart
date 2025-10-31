@@ -5,15 +5,11 @@ import 'package:intl/intl.dart'; // Import for date formatting
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/models/users/seller_model.dart';
-// 🛑 FIX: This provider is not used here, but the controller is.
-// import 'package:locally/common/providers/auth_providers.dart';
-// ✅ NEW: Import for the AuthController we created
 import 'package:locally/features/auth/controllers/auth_controller.dart';
-import 'package:locally/common/routes/app_routes.dart';
 import 'package:locally/common/widgets/location_picker.dart';
 import 'package:locally/features/wholesale_seller/profile_page/controllers/profile_controller.dart';
-import 'editable_info_tile.dart'; // Ensure this import is correct
-import 'shop_location_map.dart'; // Ensure this import is correct
+import 'editable_info_tile.dart';
+import 'shop_location_map.dart';
 
 class ProfileBody extends ConsumerWidget {
   final Seller seller;
