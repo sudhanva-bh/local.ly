@@ -2,17 +2,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/models/users/seller_model.dart';
 import 'package:locally/common/providers/auth_providers.dart'; // Your auth providers
-import 'package:locally/common/providers/product_service_providers.dart';
 import 'package:locally/common/services/profile/profile_service.dart';
 
 /// Provides the ProfileService instance, depends on SupabaseClient
 final profileServiceProvider = Provider<ProfileService>((ref) {
   final client = ref.watch(supabaseClientProvider);
+  
+  // The ProfileService constructor is now simpler
+  return ProfileService(client);
+
+  /* === OLD CODE TO DELETE ===
   return ProfileService(
     client,
     wholesaleService: ref.watch(wholesaleProductServiceProvider),
     retailService: ref.watch(retailProductServiceProvider),
   );
+  */
 });
 
 /// == This is the main provider you'll use in the UI ==

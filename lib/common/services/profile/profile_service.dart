@@ -1,23 +1,21 @@
 // lib/common/services/profile/profile_service.dart
 import 'package:fpdart/fpdart.dart';
 import 'package:locally/common/models/users/seller_model.dart';
-import 'package:locally/common/services/products/retail_product_service.dart';
-import 'package:locally/common/services/products/wholesale_product_service.dart';
+// Product service imports are no longer needed
+// import 'package:locally/common/services/products/retail_product_service.dart';
+// import 'package:locally/common/services/products/wholesale_product_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileService {
   final SupabaseClient _supabase;
-  final WholesaleProductService _wholesaleService;
-  final RetailProductService _retailService;
+  // Product service members are no longer needed
+  // final WholesaleProductService _wholesaleService;
+  // final RetailProductService _retailService;
 
   static const String _tableName = 'profiles';
 
-  ProfileService(
-    this._supabase, {
-    required WholesaleProductService wholesaleService,
-    required RetailProductService retailService,
-  }) : _wholesaleService = wholesaleService,
-       _retailService = retailService;
+  /// Constructor no longer requires product services
+  ProfileService(this._supabase);
 
   /// CREATE — Create a new seller profile
   Future<Either<String, void>> createProfile(Seller seller) async {
@@ -81,29 +79,18 @@ class ProfileService {
         });
   }
 
-  /// DELETE — Deletes the profile and all associated products
+  /// DELETE — Calls the Supabase function to delete the auth user.
+  /// The database's "ON DELETE CASCADE" rules will handle deleting
+  /// the profile and all associated products.
   Future<Either<String, void>> deleteProfile(String sellerId) async {
+    // The sellerId parameter isn't even used, as the SQL function
+    // uses auth.uid() to get the currently authenticated user.
     try {
-      final profileData = await _supabase
-          .from(_tableName)
-          .select('seller_type')
-          .eq('id', sellerId)
-          .maybeSingle();
-
-      if (profileData == null) {
-        return Left('Profile not found');
-      }
-
-      final sellerType = profileData['seller_type'] as String?;
-
-      if (sellerType == 'wholesaleSeller') {
-        await _wholesaleService.deleteProductsBySeller(sellerId);
-      } else if (sellerType == 'retailSeller') {
-        await _retailService.deleteProductsBySeller(sellerId);
-      }
-
-      await _supabase.from(_tableName).delete().eq('id', sellerId);
+      // 'delete_current_user' is the name of the SQL function we created
+      await _supabase.rpc('delete_current_user');
       return Right(null);
+    } on PostgrestException catch (e) {
+      return Left(e.message);
     } catch (e) {
       return Left(e.toString());
     }

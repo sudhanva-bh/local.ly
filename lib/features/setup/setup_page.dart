@@ -1,3 +1,5 @@
+// lib/features/setup/setup_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/models/users/seller_model.dart';
@@ -60,6 +62,8 @@ class _SetupPageState extends ConsumerState<SetupPage> {
             latitude != null &&
             longitude != null;
       default:
+        // Steps 2 (Review) and 3 (Notifications) don't need validation
+        // as they just display info.
         return true;
     }
   }
@@ -98,11 +102,22 @@ class _SetupPageState extends ConsumerState<SetupPage> {
         return;
       }
 
+      // --- NEW: Get FCM Token BEFORE creating profile ---
+      final notificationService = ref.read(notificationServiceProvider);
+      String? fcmToken;
+      try {
+        fcmToken = await notificationService.requestPermissionAndGetToken();
+      } catch (e) {
+        print("Could not get FCM token during setup: $e");
+        // Don't block setup, just proceed without a token
+      }
+      // --- END NEW ---
+
       // Create Seller object
       final seller = Seller(
         uid: user.id,
         email: user.email ?? '',
-        fcmToken: null, // will be updated by NotificationService later
+        fcmToken: fcmToken, // ✅ Use the token here
         phoneNumber: phoneNumberController.text.trim(),
         profileImageUrl: null,
         shopName: shopNameController.text.trim(),
@@ -128,9 +143,10 @@ class _SetupPageState extends ConsumerState<SetupPage> {
           );
         },
         (_) async {
-          // Update FCM token
-          final notificationService = ref.read(notificationServiceProvider);
-          await notificationService.init();
+          // --- MODIFIED: Set up the refresh listener ---
+          // The token is already saved, just listen for future updates.
+          ref.read(notificationServiceProvider).initTokenRefreshListener();
+          // --- END MODIFIED ---
 
           CustomSnackbar.show(
             context,
@@ -199,6 +215,7 @@ class _SetupPageState extends ConsumerState<SetupPage> {
             if (_currentStep < 3) {
               setState(() => _currentStep += 1);
             } else {
+              // This is the "Finish" button on the last step
               _completeSetup();
             }
           } else {
@@ -339,48 +356,14 @@ class _SetupPageState extends ConsumerState<SetupPage> {
           Step(
             title: const Text('Notifications'),
             content: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Added horizontal padding and center alignment
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      'We use notifications to keep you updated about orders and messages.',
-                      textAlign: TextAlign.center,
-                      style: context.textTheme.bodyMedium,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.notifications_active_outlined),
-                    label: const Text('Grant Notification Permission'),
-                    // Consistent button styling
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                      textStyle: context.textTheme.labelLarge,
-                    ),
-                    onPressed: () async {
-                      final notificationService = ref.read(
-                        notificationServiceProvider,
-                      );
-                      try {
-                        await notificationService.init();
-                        CustomSnackbar.show(
-                          context,
-                          message:
-                              "Notification permission granted successfully!",
-                        );
-                      } catch (e) {
-                        CustomSnackbar.show(
-                          context,
-                          message: "Failed to enable notifications: $e",
-                        );
-                      }
-                    },
-                  ),
-                ],
+              padding: const EdgeInsets.symmetric(
+                vertical: 8.0,
+                horizontal: 8.0,
+              ),
+              child: Text(
+                'We use notifications to keep you updated about orders and messages. We will ask for permission when you click "Finish".',
+                textAlign: TextAlign.center,
+                style: context.textTheme.bodyMedium,
               ),
             ),
             isActive: _currentStep >= 3,

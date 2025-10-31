@@ -52,29 +52,8 @@ class _WholesaleNavPageState extends ConsumerState<WholesaleNavPage> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeProvider);
-    final isDark = themeMode == ThemeMode.dark;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Wholesale Home Page'),
-        actions: [
-          IconButton(
-            icon: Icon(isDark ? Icons.dark_mode : Icons.light_mode),
-            onPressed: () => ref.read(themeProvider.notifier).toggleTheme(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              ref.read(authControllerProvider.notifier).signOut();
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                AppRoutes.authPage,
-                (route) => false,
-              );
-            },
-          ),
-        ],
-      ),
+      extendBodyBehindAppBar: true,
       body: _pages[_currentIndex],
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
@@ -84,3 +63,22 @@ class _WholesaleNavPageState extends ConsumerState<WholesaleNavPage> {
     );
   }
 }
+
+    // final themeMode = ref.watch(themeProvider);
+    // final isDark = themeMode == ThemeMode.dark;
+// actions: [
+//           IconButton(
+//             icon: Icon(isDark ? Icons.dark_mode : Icons.light_mode),
+//             onPressed: () => ref.read(themeProvider.notifier).toggleTheme(),
+//           ),
+//           IconButton(
+//             icon: const Icon(Icons.logout),
+//             onPressed: () {
+//               ref.read(authControllerProvider.notifier).signOut();
+//               Navigator.of(context).pushNamedAndRemoveUntil(
+//                 AppRoutes.authPage,
+//                 (route) => false,
+//               );
+//             },
+//           ),
+//         ],

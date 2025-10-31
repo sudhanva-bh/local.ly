@@ -43,7 +43,10 @@ class ProfileController extends StateNotifier<AsyncValue<Seller?>> {
     final seller = state.value;
     if (seller == null) return;
 
-    final updatedSeller = seller.copyWith(shopName: newName);
+    final updatedSeller = seller.copyWith(
+      shopName: newName,
+      updatedAt: DateTime.now(),
+    );
     await updateProfile(updatedSeller);
   }
 
@@ -51,7 +54,10 @@ class ProfileController extends StateNotifier<AsyncValue<Seller?>> {
     final seller = state.value;
     if (seller == null) return;
 
-    final updatedSeller = seller.copyWith(phoneNumber: newPhone);
+    final updatedSeller = seller.copyWith(
+      phoneNumber: newPhone,
+      updatedAt: DateTime.now(),
+    );
     await updateProfile(updatedSeller);
   }
 
@@ -67,6 +73,7 @@ class ProfileController extends StateNotifier<AsyncValue<Seller?>> {
       latitude: latitude,
       longitude: longitude,
       address: address,
+      updatedAt: DateTime.now(),
     );
     await updateProfile(updatedSeller);
   }
