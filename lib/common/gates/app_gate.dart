@@ -7,7 +7,7 @@ import 'package:locally/common/providers/profile_provider.dart';
 import 'package:locally/features/auth/pages/auth_page.dart';
 import 'package:locally/features/retail_seller/home/presentation/pages/retail_home_page.dart';
 import 'package:locally/features/setup/setup_page.dart';
-import 'package:locally/features/wholesale_seller/home/presentation/pages/wholesale_nav_page.dart';
+import 'package:locally/features/wholesale_seller/wholesale_nav_page.dart';
 
 class AppGate extends ConsumerWidget {
   const AppGate({super.key});

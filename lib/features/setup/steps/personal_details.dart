@@ -33,25 +33,59 @@ class _PersonalDetailsState extends State<PersonalDetails> {
   double? _longitude;
   String? _address;
 
+  InputDecoration _inputDecoration({
+    String? label,
+    String? hint,
+    required IconData icon,
+    bool dense = false,
+    bool floatingLabel = true,
+  }) {
+    return InputDecoration(
+      labelText: floatingLabel ? label : null,
+      hintText: floatingLabel ? null : hint,
+      floatingLabelBehavior: floatingLabel
+          ? FloatingLabelBehavior.auto
+          : FloatingLabelBehavior.never,
+      prefixIcon: Icon(icon, color: Colors.grey[700]),
+      filled: true,
+      fillColor: Colors.grey[100],
+      isDense: dense,
+      contentPadding: dense
+          ? const EdgeInsets.symmetric(vertical: 10, horizontal: 16)
+          : const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(23),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(23),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(23),
+        borderSide: BorderSide.none,
+      ),
+      hintStyle: TextStyle(color: Colors.grey[600]),
+      labelStyle: TextStyle(color: Colors.grey[600]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Added padding for better spacing within the step
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4),
       child: Form(
         key: widget.formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 📞 Phone number
+            // 📞 Phone number (static hint, no floating label)
             IntlPhoneField(
-              decoration: InputDecoration(
-                labelText: 'Phone Number',
-                prefixIcon: const Icon(Icons.phone),
-                border: OutlineInputBorder(
-                  // Consistent border radius
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              decoration: _inputDecoration(
+                hint: 'Phone Number',
+                icon: Icons.phone,
+                dense: true,
+                floatingLabel: false,
               ),
               initialCountryCode: 'IN',
               onChanged: (phone) {
@@ -69,19 +103,16 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 4),
 
-            // 🏪 Shop name
+            // 🏪 Shop name (thin with floating label)
             TextFormField(
               textCapitalization: TextCapitalization.words,
               controller: widget.shopNameController,
-              decoration: InputDecoration(
-                labelText: 'Shop Name',
-                prefixIcon: const Icon(Icons.store),
-                border: OutlineInputBorder(
-                  // Consistent border radius
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              decoration: _inputDecoration(
+                label: 'Shop Name',
+                icon: Icons.store,
+                dense: true,
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -92,18 +123,20 @@ class _PersonalDetailsState extends State<PersonalDetails> {
             ),
             const SizedBox(height: 16),
 
-            // 🏡 Address
+            // 🏡 Address (taller field)
             TextFormField(
               textCapitalization: TextCapitalization.sentences,
               controller: widget.addressController,
-              decoration: InputDecoration(
-                labelText: 'Address',
-                prefixIcon: const Icon(Icons.home),
-                border: OutlineInputBorder(
-                  // Consistent border radius
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+              decoration:
+                  _inputDecoration(
+                    label: 'Address',
+                    icon: Icons.home,
+                  ).copyWith(
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 18,
+                      horizontal: 20,
+                    ),
+                  ),
               maxLines: 3,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
