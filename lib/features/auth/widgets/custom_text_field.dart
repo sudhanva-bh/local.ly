@@ -42,6 +42,7 @@ class CustomTextField extends StatelessWidget {
             ? IconButton(
                 icon: Icon(
                   obscureText ? Icons.visibility_off : Icons.visibility,
+                  size: 20.0,
                 ),
                 onPressed: onToggleVisibility,
               )

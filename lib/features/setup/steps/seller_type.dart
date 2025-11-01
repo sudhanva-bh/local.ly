@@ -16,7 +16,7 @@ class SellerTypeWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     // Added padding for better spacing within the step
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -28,6 +28,7 @@ class SellerTypeWidget extends StatelessWidget {
             SellerTypeButton(
               sellerType: SellerType.retailSeller,
               isSelected: sellerType == SellerType.retailSeller,
+              
               onTapped: () {
                 switchSeller(SellerType.retailSeller);
               },

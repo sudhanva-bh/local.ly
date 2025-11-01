@@ -45,8 +45,9 @@ class _SellerTypeButtonState extends State<SellerTypeButton>
         curve: Curves.easeOut,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          width: 150,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          width: 110,
+          height: 80,
           decoration: BoxDecoration(
             color: widget.isSelected
                 ? colorScheme.primary
@@ -69,6 +70,7 @@ class _SellerTypeButtonState extends State<SellerTypeButton>
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
@@ -76,18 +78,18 @@ class _SellerTypeButtonState extends State<SellerTypeButton>
                   widget.sellerType == SellerType.retailSeller
                       ? FilePaths.retailSellerImage
                       : FilePaths.wholesaleSellerImage,
-                  height: 40,
-                  width: 40,
+                  height: 36,
+                  width: 36,
                   fit: BoxFit.cover,
                 ),
               ),
-              // Corrected SizedBox from width to height
-              const SizedBox(height: 12),
+              SizedBox(height: 6),
               Text(
                 widget.sellerType.toWords(),
                 // Added center alignment
                 textAlign: TextAlign.center,
                 style: TextStyle(
+                  fontSize: 10,
                   fontWeight: widget.isSelected
                       ? FontWeight.bold
                       : FontWeight.normal,

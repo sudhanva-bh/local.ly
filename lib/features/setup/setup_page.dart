@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/models/users/seller_model.dart';
 import 'package:locally/common/providers/notification_provider.dart';
+import 'package:locally/common/providers/theme_provider.dart';
 import 'package:locally/common/routes/app_routes.dart';
+import 'package:locally/features/auth/controllers/auth_controller.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:locally/common/utilities/custom_snackbar.dart';
 import 'package:locally/common/providers/profile_provider.dart';
@@ -191,184 +193,234 @@ class _SetupPageState extends ConsumerState<SetupPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: context.colors.primary,
-        // Use theme-aware text styling
-        title: Text(
-          "LOCAL.LY",
-          style: context.textTheme.titleLarge?.copyWith(
-            color: context.colors.onPrimary,
+    final themeMode = ref.watch(themeProvider);
+    final isDark = themeMode == ThemeMode.dark;
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            context.colors.primary,
+            context.colors.background,
+          ],
+          stops: [0.3, 1],
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: context.colors.primary.withAlpha(40),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          // Use theme-aware text styling
+          title: Text(
+            "LOCAL.LY",
+            style: context.textTheme.titleLarge?.copyWith(
+              color: context.colors.onPrimary,
+            ),
+          ),
+          centerTitle: true,
+          // Add flat aesthetic
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          actions: [
+            IconButton(
+              icon: Icon(isDark ? Icons.dark_mode : Icons.light_mode),
+              onPressed: () => ref.read(themeProvider.notifier).toggleTheme(),
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () {
+                ref.read(authControllerProvider.notifier).signOut();
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.authPage,
+                  (route) => false,
+                );
+              },
+            ),
+          ],
+        ),
+        body: Center(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 800),
+            curve: Curves.easeInOut,
+            child: Container(
+              width: 350, // keep fixed width
+              padding: const EdgeInsets.all(10.0),
+              decoration: BoxDecoration(
+                color: context.colors.surface.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(40),
+              ),
+              child: Stepper(
+                type: StepperType.vertical,
+                currentStep: _currentStep,
+                elevation: 0, // Flatter look for the stepper
+                onStepContinue: () {
+                  if (_isStepValid(_currentStep)) {
+                    if (_currentStep < 3) {
+                      setState(() => _currentStep += 1);
+                    } else {
+                      // This is the "Finish" button on the last step
+                      _completeSetup();
+                    }
+                  } else {
+                    _showError(_currentStep);
+                  }
+                },
+                onStepCancel: () {
+                  if (_currentStep > 0) setState(() => _currentStep -= 1);
+                },
+                controlsBuilder: (context, details) {
+                  // Consistent styling for control buttons
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: _isUploading
+                              ? null
+                              : details.onStepContinue,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
+                            textStyle: context.textTheme.labelLarge,
+                          ),
+                          child: _isUploading
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    // Ensure progress indicator is visible on button
+                                    color: context.colors.onPrimary,
+                                  ),
+                                )
+                              : Text(_currentStep == 3 ? 'Finish' : 'Next'),
+                        ),
+                        const SizedBox(width: 10),
+                        if (_currentStep > 0)
+                          TextButton(
+                            onPressed: _isUploading
+                                ? null
+                                : details.onStepCancel,
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                              textStyle: context.textTheme.labelLarge,
+                            ),
+                            child: const Text('Back'),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+                steps: [
+                  // Step 1: Seller Type
+                  Step(
+                    title: const Text('Seller Type'),
+                    content: SellerTypeWidget(
+                      sellerType: sellerType,
+                      switchSeller: switchSellerType,
+                    ),
+                    isActive: _currentStep >= 0,
+                  ),
+
+                  // Step 2: Shop Details
+                  Step(
+                    title: const Text('Shop Details'),
+                    content: PersonalDetails(
+                      formKey: _formKey,
+                      phoneNumberController: phoneNumberController,
+                      shopNameController: shopNameController,
+                      addressController: addressController,
+                      onLocationPicked:
+                          ({
+                            required double latitude,
+                            required double longitude,
+                            required String address,
+                          }) {
+                            setState(() {
+                              this.latitude = latitude;
+                              this.longitude = longitude;
+                              this.address = address;
+                            });
+                          },
+                    ),
+                    isActive: _currentStep >= 1,
+                  ),
+
+                  // Step 3: Review
+                  Step(
+                    title: const Text('Review'),
+                    content: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      // Added a summary card for better visual grouping
+                      child: Container(
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: context.colors.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildReviewRow(
+                              context,
+                              "Seller Type",
+                              sellerType?.toWords() ?? '-',
+                            ),
+                            _buildReviewRow(
+                              context,
+                              "Shop Name",
+                              shopNameController.text,
+                            ),
+                            _buildReviewRow(
+                              context,
+                              "Phone",
+                              phoneNumberController.text,
+                            ),
+                            _buildReviewRow(
+                              context,
+                              "Address",
+                              addressController.text,
+                            ),
+                            if (latitude != null && longitude != null)
+                              _buildReviewRow(
+                                context,
+                                "Location",
+                                "${latitude!.toStringAsFixed(5)}, ${longitude!.toStringAsFixed(5)}",
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    isActive: _currentStep >= 2,
+                  ),
+
+                  // Step 4: Notifications
+                  Step(
+                    title: const Text('Notifications'),
+                    content: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8.0,
+                        horizontal: 8.0,
+                      ),
+                      child: Text(
+                        'We use notifications to keep you updated about orders and messages. We will ask for permission when you click "Finish".',
+                        textAlign: TextAlign.center,
+                        style: context.textTheme.bodyMedium,
+                      ),
+                    ),
+                    isActive: _currentStep >= 3,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-        centerTitle: true,
-        // Add flat aesthetic
-        elevation: 0,
-        scrolledUnderElevation: 0,
-      ),
-      body: Stepper(
-        type: StepperType.vertical,
-        currentStep: _currentStep,
-        elevation: 0, // Flatter look for the stepper
-        onStepContinue: () {
-          if (_isStepValid(_currentStep)) {
-            if (_currentStep < 3) {
-              setState(() => _currentStep += 1);
-            } else {
-              // This is the "Finish" button on the last step
-              _completeSetup();
-            }
-          } else {
-            _showError(_currentStep);
-          }
-        },
-        onStepCancel: () {
-          if (_currentStep > 0) setState(() => _currentStep -= 1);
-        },
-        controlsBuilder: (context, details) {
-          // Consistent styling for control buttons
-          return Padding(
-            padding: const EdgeInsets.only(top: 16.0),
-            child: Row(
-              children: [
-                ElevatedButton(
-                  onPressed: _isUploading ? null : details.onStepContinue,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    textStyle: context.textTheme.labelLarge,
-                  ),
-                  child: _isUploading
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            // Ensure progress indicator is visible on button
-                            color: context.colors.onPrimary,
-                          ),
-                        )
-                      : Text(_currentStep == 3 ? 'Finish' : 'Next'),
-                ),
-                const SizedBox(width: 10),
-                if (_currentStep > 0)
-                  TextButton(
-                    onPressed: _isUploading ? null : details.onStepCancel,
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      textStyle: context.textTheme.labelLarge,
-                    ),
-                    child: const Text('Back'),
-                  ),
-              ],
-            ),
-          );
-        },
-        steps: [
-          // Step 1: Seller Type
-          Step(
-            title: const Text('Seller Type'),
-            content: SellerTypeWidget(
-              sellerType: sellerType,
-              switchSeller: switchSellerType,
-            ),
-            isActive: _currentStep >= 0,
-          ),
-
-          // Step 2: Shop Details
-          Step(
-            title: const Text('Shop Details'),
-            content: PersonalDetails(
-              formKey: _formKey,
-              phoneNumberController: phoneNumberController,
-              shopNameController: shopNameController,
-              addressController: addressController,
-              onLocationPicked:
-                  ({
-                    required double latitude,
-                    required double longitude,
-                    required String address,
-                  }) {
-                    setState(() {
-                      this.latitude = latitude;
-                      this.longitude = longitude;
-                      this.address = address;
-                    });
-                  },
-            ),
-            isActive: _currentStep >= 1,
-          ),
-
-          // Step 3: Review
-          Step(
-            title: const Text('Review'),
-            content: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              // Added a summary card for better visual grouping
-              child: Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: context.colors.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildReviewRow(
-                      context,
-                      "Seller Type",
-                      sellerType?.toWords() ?? '-',
-                    ),
-                    _buildReviewRow(
-                      context,
-                      "Shop Name",
-                      shopNameController.text,
-                    ),
-                    _buildReviewRow(
-                      context,
-                      "Phone",
-                      phoneNumberController.text,
-                    ),
-                    _buildReviewRow(
-                      context,
-                      "Address",
-                      addressController.text,
-                    ),
-                    if (latitude != null && longitude != null)
-                      _buildReviewRow(
-                        context,
-                        "Location",
-                        "${latitude!.toStringAsFixed(5)}, ${longitude!.toStringAsFixed(5)}",
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            isActive: _currentStep >= 2,
-          ),
-
-          // Step 4: Notifications
-          Step(
-            title: const Text('Notifications'),
-            content: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 8.0,
-                horizontal: 8.0,
-              ),
-              child: Text(
-                'We use notifications to keep you updated about orders and messages. We will ask for permission when you click "Finish".',
-                textAlign: TextAlign.center,
-                style: context.textTheme.bodyMedium,
-              ),
-            ),
-            isActive: _currentStep >= 3,
-          ),
-        ],
       ),
     );
   }

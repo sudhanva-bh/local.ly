@@ -1,19 +1,19 @@
 enum ProductCategories {
-  tech,
-  clothing,
-  shoes,
-  groceries,
-  beauty,
-  home,
-  sports,
-  toys,
-  books,
-  automotive,
-  jewelry,
-  pets,
-  office,
-  health,
-  travel,
+  tech, 
+  clothing, 
+  shoes, 
+  groceries, 
+  beauty, 
+  home, 
+  sports, 
+  toys, 
+  books, 
+  automotive, 
+  jewelry, 
+  pets, 
+  office, 
+  health, 
+  travel, other,
 }
 
 String categoryDisplayName(ProductCategories category) {
@@ -48,5 +48,7 @@ String categoryDisplayName(ProductCategories category) {
       return "Health";
     case ProductCategories.travel:
       return "Travel";
+    case ProductCategories.other:
+    return "Other";
   }
 }

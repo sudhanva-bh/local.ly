@@ -41,6 +41,15 @@ class MyApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       routes: AppRoutes.routes,
       initialRoute: AppRoutes.appGate,
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(
+            textScaler: const TextScaler.linear(1.0), // Prevent system scaling
+          ),
+          child: child!,
+        );
+      },
     );
   }
 }
