@@ -26,19 +26,19 @@ class SellerTypeWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             SellerTypeButton(
-              sellerType: SellerType.retailSeller,
-              isSelected: sellerType == SellerType.retailSeller,
-              
+              sellerType: SellerType.wholesaleSeller,
+              isSelected: sellerType == SellerType.wholesaleSeller,
+
               onTapped: () {
-                switchSeller(SellerType.retailSeller);
+                switchSeller(SellerType.wholesaleSeller);
               },
             ),
             24.widthBox,
             SellerTypeButton(
-              sellerType: SellerType.wholesaleSeller,
-              isSelected: sellerType == SellerType.wholesaleSeller,
+              sellerType: SellerType.retailSeller,
+              isSelected: sellerType == SellerType.retailSeller,
               onTapped: () {
-                switchSeller(SellerType.wholesaleSeller);
+                switchSeller(SellerType.retailSeller);
               },
             ),
           ],

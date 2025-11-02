@@ -53,6 +53,7 @@ class _SetupPageState extends ConsumerState<SetupPage> {
 
   void switchSellerType(SellerType newSellerType) {
     setState(() => sellerType = newSellerType);
+    print(sellerType!.toWords());
   }
 
   bool _isStepValid(int step) {

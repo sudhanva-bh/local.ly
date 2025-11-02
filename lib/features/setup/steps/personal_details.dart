@@ -123,33 +123,6 @@ class _PersonalDetailsState extends State<PersonalDetails> {
               },
             ),
             const SizedBox(height: 16),
-
-            // 🏡 Address
-            TextFormField(
-              textCapitalization: TextCapitalization.sentences,
-              controller: widget.addressController,
-              decoration:
-                  _inputDecoration(
-                    label: 'Address',
-                    icon: Icons.home,
-                  ).copyWith(
-                    fillColor:
-                        context.colors.surface, // ✅ Ensure consistent fill
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 18,
-                      horizontal: 20,
-                    ),
-                  ),
-              maxLines: 3,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter your address';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 14),
-
             // 📍 Location picker
             LocationPickerField(
               latitude: _latitude,
@@ -176,6 +149,32 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                       address: address,
                     );
                   },
+            ),
+
+            const SizedBox(height: 14),
+            // 🏡 Address
+            TextFormField(
+              textCapitalization: TextCapitalization.sentences,
+              controller: widget.addressController,
+              decoration:
+                  _inputDecoration(
+                    label: 'Address',
+                    icon: Icons.home,
+                  ).copyWith(
+                    fillColor:
+                        context.colors.surface, // ✅ Ensure consistent fill
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 18,
+                      horizontal: 20,
+                    ),
+                  ),
+              maxLines: 2,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Please enter your address';
+                }
+                return null;
+              },
             ),
           ],
         ),

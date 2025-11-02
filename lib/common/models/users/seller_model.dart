@@ -33,9 +33,9 @@ extension SellerTypeX on SellerType {
   String toWords() {
     switch (this) {
       case SellerType.wholesaleSeller:
-        return 'Retail Seller';
-      case SellerType.retailSeller:
         return 'Wholesale Seller';
+      case SellerType.retailSeller:
+        return 'Retail Seller';
     }
   }
 }

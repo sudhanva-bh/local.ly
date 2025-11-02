@@ -671,40 +671,40 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
         ),
 
         // 📏 Coordinates below the map
-        const SizedBox(height: 10),
-        AnimatedOpacity(
-          duration: const Duration(milliseconds: 200),
-          opacity: _position != null ? 1 : 0.6,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-            decoration: BoxDecoration(
-              color: context.colors.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.my_location,
-                  size: 16,
-                  color: context.colors.onSurface.withOpacity(0.6),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _position != null
-                        ? "Lat: ${_position!.latitude.toStringAsFixed(5)}   •   Lon: ${_position!.longitude.toStringAsFixed(5)}"
-                        : "No coordinates selected",
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: context.colors.onSurface.withOpacity(0.7),
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        // const SizedBox(height: 10),
+        // AnimatedOpacity(
+        //   duration: const Duration(milliseconds: 200),
+        //   opacity: _position != null ? 1 : 0.6,
+        //   child: Container(
+        //     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        //     decoration: BoxDecoration(
+        //       color: context.colors.surfaceContainerHighest,
+        //       borderRadius: BorderRadius.circular(12),
+        //     ),
+        //     child: Row(
+        //       children: [
+        //         Icon(
+        //           Icons.my_location,
+        //           size: 16,
+        //           color: context.colors.onSurface.withOpacity(0.6),
+        //         ),
+        //         const SizedBox(width: 8),
+        //         Expanded(
+        //           child: Text(
+        //             _position != null
+        //                 ? "Lat: ${_position!.latitude.toStringAsFixed(5)}   •   Lon: ${_position!.longitude.toStringAsFixed(5)}"
+        //                 : "No coordinates selected",
+        //             style: theme.textTheme.bodySmall?.copyWith(
+        //               color: context.colors.onSurface.withOpacity(0.7),
+        //               fontWeight: FontWeight.w500,
+        //               letterSpacing: 0.2,
+        //             ),
+        //           ),
+        //         ),
+        //       ],
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }
