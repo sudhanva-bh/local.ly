@@ -31,7 +31,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     // Read the form state and controller actions from Riverpod
-    final showSignUp = ref.watch(authControllerProvider.select((s) => s.showSignUp));
+    final showSignUp = ref.watch(
+      authControllerProvider.select((s) => s.showSignUp),
+    );
     final controller = ref.read(authControllerProvider.notifier);
 
     return Scaffold(
@@ -100,8 +102,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 500),
                   curve: Curves.easeOutBack,
-                  height: showSignUp // This now comes from the controller
-                      ? screenHeight * 0.55 - dragOffset
+                  height:
+                      showSignUp // This now comes from the controller
+                      ? screenHeight * 0.65 - dragOffset
                       : screenHeight * 0.45 - dragOffset,
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -113,7 +116,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                   ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
-                    vertical: 32,
+                    vertical: 24,
                   ),
                   child: showSignUp
                       ? RegistrationForm(toggleForm: controller.toggleForm)

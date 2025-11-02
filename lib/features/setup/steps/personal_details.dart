@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:locally/common/widgets/location_picker.dart';
+import 'package:locally/common/extensions/content_extensions.dart'; // assuming this gives context.colors
 
 class PersonalDetails extends StatefulWidget {
   const PersonalDetails({
@@ -48,7 +49,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
           : FloatingLabelBehavior.never,
       prefixIcon: Icon(icon, color: Colors.grey[700]),
       filled: true,
-      fillColor: Colors.grey[100],
+      fillColor: context.colors.surface, // ✅ Applied theme surface color
       isDense: dense,
       contentPadding: dense
           ? const EdgeInsets.symmetric(vertical: 10, horizontal: 16)
@@ -105,7 +106,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
             ),
             const SizedBox(height: 4),
 
-            // 🏪 Shop name (thin with floating label)
+            // 🏪 Shop name
             TextFormField(
               textCapitalization: TextCapitalization.words,
               controller: widget.shopNameController,
@@ -123,7 +124,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
             ),
             const SizedBox(height: 16),
 
-            // 🏡 Address (taller field)
+            // 🏡 Address
             TextFormField(
               textCapitalization: TextCapitalization.sentences,
               controller: widget.addressController,
@@ -132,6 +133,8 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                     label: 'Address',
                     icon: Icons.home,
                   ).copyWith(
+                    fillColor:
+                        context.colors.surface, // ✅ Ensure consistent fill
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 18,
                       horizontal: 20,
@@ -145,9 +148,9 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
 
-            // 📍 Mini Map Preview
+            // 📍 Location picker
             LocationPickerField(
               latitude: _latitude,
               longitude: _longitude,

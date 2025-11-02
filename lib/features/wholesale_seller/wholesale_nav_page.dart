@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/widgets/bottom_navigator.dart';
+import 'package:locally/features/wholesale_seller/home/presentation/pages/home_page.dart';
 import 'package:locally/features/wholesale_seller/profile_page/pages/profile_page.dart';
 
 class WholesaleNavPage extends ConsumerStatefulWidget {
@@ -14,7 +15,7 @@ class _WholesaleNavPageState extends ConsumerState<WholesaleNavPage> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = const [
-    Center(child: Text('Dashboard')),
+    HomePage(),
     Center(child: Text('Orders')),
     Center(child: Text('Products')),
     ProfilePage(),

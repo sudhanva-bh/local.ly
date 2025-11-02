@@ -415,7 +415,7 @@ class _ModernLocationPickerState extends State<_ModernLocationPicker>
       // 🌟 FIX: Use the animated controller for smooth movement
       await _animatedMapController.animateTo(
         dest: latLng,
-        zoom: 15,
+        zoom: 16.5,
       );
 
       // Trigger geocoding for the new location
@@ -518,7 +518,6 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
     final lon = result["longitude"] as double;
     final address = result["address"] as String? ?? "Unknown address";
 
-    // ✅ Ask confirmation before updating the address field
     final shouldUpdate = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -539,7 +538,6 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
       ),
     );
 
-    // Default to false if dialog dismissed
     final updateAddressField = shouldUpdate ?? false;
 
     setState(() {
@@ -547,7 +545,6 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
       _address = address;
     });
 
-    // Pass the chosen data + user preference to parent
     widget.onLocationPicked(
       latitude: lat,
       longitude: lon,
@@ -559,103 +556,152 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Shop Location",
-          style: theme.textTheme.titleMedium,
-        ),
-        const SizedBox(height: 8),
         GestureDetector(
           onTap: _openPicker,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              height: 180,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: context.colors.outline),
-                color: context.colors.surfaceDim,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            height: 180,
+            decoration: BoxDecoration(
+              color: context.colors.surface,
+              borderRadius: BorderRadius.circular(23),
+              border: Border.all(
+                color: context.colors.outline.withOpacity(0.3),
               ),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (_position != null)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: FlutterMap(
-                        options: MapOptions(
-                          initialCenter: _position!,
-                          initialZoom: 15,
-                          interactionOptions: const InteractionOptions(
-                            flags: 0,
-                          ), // disable pan/zoom
-                        ),
-                        children: [
-                          TileLayer(
-                            urlTemplate:
-                                "https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=${dotenv.env["MAPTILER_API_KEY"]}",
-                            userAgentPackageName: "com.example.app",
-                          ),
-                          MarkerLayer(
-                            markers: [
-                              Marker(
-                                point: _position!,
-                                width: 40,
-                                height: 40,
-                                child: Icon(
-                                  Icons.location_on,
-                                  color: context.colors.primary,
-                                  size: 38,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    )
-                  else
-                    const Center(
-                      child: Icon(
-                        Icons.map_outlined,
-                        size: 60,
-                        color: Colors.grey,
-                      ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (_position != null)
+                  FlutterMap(
+                    options: MapOptions(
+                      initialCenter: _position!,
+                      initialZoom: 15,
+                      interactionOptions: const InteractionOptions(flags: 0),
                     ),
-                  // Overlay
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(8),
-                      color: Colors.black.withOpacity(0.5),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.open_in_full,
-                            color: Colors.white70,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              _address ?? "Tap to select location on map",
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                            "https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=${dotenv.env["MAPTILER_API_KEY"]}",
+                        userAgentPackageName: "com.example.app",
+                      ),
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: _position!,
+                            width: 40,
+                            height: 40,
+                            child: Icon(
+                              Icons.location_on,
+                              color: context.colors.primary,
+                              size: 38,
                             ),
                           ),
                         ],
                       ),
+                    ],
+                  )
+                else
+                  Center(
+                    child: Icon(
+                      Icons.map_outlined,
+                      size: 60,
+                      color: context.colors.onSurface.withOpacity(0.3),
                     ),
                   ),
-                ],
-              ),
+
+                // 🏷️ Address overlay
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.5),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.place_outlined,
+                          color: Colors.white.withOpacity(0.9),
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            _address ?? "Tap to select location on map",
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // 📏 Coordinates below the map
+        const SizedBox(height: 10),
+        AnimatedOpacity(
+          duration: const Duration(milliseconds: 200),
+          opacity: _position != null ? 1 : 0.6,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            decoration: BoxDecoration(
+              color: context.colors.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.my_location,
+                  size: 16,
+                  color: context.colors.onSurface.withOpacity(0.6),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _position != null
+                        ? "Lat: ${_position!.latitude.toStringAsFixed(5)}   •   Lon: ${_position!.longitude.toStringAsFixed(5)}"
+                        : "No coordinates selected",
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: context.colors.onSurface.withOpacity(0.7),
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

@@ -20,7 +20,7 @@ class HomePage extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (context) => const SearchPage(
                     //introduce tableName here
-                    tableName: 'test_products',
+                    tableName: 'wholesale_products',
                     searchColumn: 'product_name',
                     initialQuery: '', // initial on opening the search bar
                   ),
@@ -32,7 +32,7 @@ class HomePage extends StatelessWidget {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, 
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
               'Welcome to Locally!',
@@ -46,7 +46,7 @@ class HomePage extends StatelessWidget {
                   MaterialPageRoute(
                     builder: (context) => const ProductListPage(
                       //Here input changes are made
-                      tableName: 'test_products',
+                      tableName: 'wholesale_products',
                     ),
                   ),
                 );
