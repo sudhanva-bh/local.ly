@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart'; // Import for date formatting
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
+import 'package:locally/common/gates/app_gate.dart';
 import 'package:locally/common/models/users/seller_model.dart';
 import 'package:locally/features/auth/controllers/auth_controller.dart';
 import 'package:locally/common/widgets/location_picker.dart';
@@ -423,6 +424,10 @@ class ProfileBody extends ConsumerWidget {
               content: Text("Profile deleted successfully."),
               backgroundColor: Colors.redAccent,
             ),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => AppGate()),
           );
         }
 

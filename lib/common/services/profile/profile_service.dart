@@ -61,6 +61,7 @@ class ProfileService {
     } catch (e) {
       return Left(e.toString());
     }
+    // TODO: Update all locations of products
   }
 
   /// STREAM — Live updates to a user's profile

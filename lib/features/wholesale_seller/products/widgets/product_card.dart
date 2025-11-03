@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:locally/common/extensions/content_extensions.dart'; // for context.colors
 import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
-import 'package:locally/features/wholesale_seller/products/widgets/view_product.dart';
+import 'package:locally/features/wholesale_seller/products/pages/view_product.dart';
 
 class ProductCard extends StatelessWidget {
   final WholesaleProduct product;
@@ -36,7 +36,9 @@ class ProductCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ViewProduct(product: product),
+              builder: (context) => ViewProduct(
+                productId: product.productId,
+              ),
             ),
           );
         },

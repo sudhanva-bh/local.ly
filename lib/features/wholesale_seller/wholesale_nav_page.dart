@@ -8,14 +8,24 @@ import 'package:locally/features/wholesale_seller/profile_page/pages/profile_pag
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class WholesaleNavPage extends ConsumerStatefulWidget {
-  const WholesaleNavPage({super.key});
+  /// Optional initial page index. Defaults to 0 (Dashboard)
+  final int initialIndex;
+
+  const WholesaleNavPage({super.key, this.initialIndex = 0});
 
   @override
   ConsumerState<WholesaleNavPage> createState() => _WholesaleNavPageState();
 }
 
 class _WholesaleNavPageState extends ConsumerState<WholesaleNavPage> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with provided starting index
+    _currentIndex = widget.initialIndex;
+  }
 
   final List<Widget> _pages = const [
     HomePage(),
@@ -62,7 +72,6 @@ class _WholesaleNavPageState extends ConsumerState<WholesaleNavPage> {
     return Scaffold(
       extendBody: true,
       body: IndexedStack(
-        // 👈 persists state across tabs
         index: _currentIndex,
         children: _pages,
       ),

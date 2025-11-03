@@ -1,40 +1,48 @@
 import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:locally/common/extensions/content_extensions.dart';
-import 'package:locally/features/wholesale_seller/create_product/widgets/custom_text_field.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:locally/common/models/product_categories/product_categories.dart';
+import 'package:locally/common/providers/profile_provider.dart';
+import 'package:locally/features/wholesale_seller/products/pages/products_page.dart';
+import 'package:locally/features/wholesale_seller/wholesale_nav_page.dart';
+import 'package:uuid/uuid.dart';
 
-class CreatePageUI extends StatefulWidget {
+import 'package:locally/common/extensions/content_extensions.dart';
+import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
+import 'package:locally/common/providers/auth_providers.dart';
+import 'package:locally/common/providers/product_service_providers.dart';
+import 'package:locally/features/wholesale_seller/create_product/widgets/custom_text_field.dart';
+import 'package:locally/features/wholesale_seller/create_product/widgets/image_picker_grid.dart';
+import 'package:locally/features/wholesale_seller/create_product/widgets/section_card.dart';
+import 'package:locally/features/wholesale_seller/create_product/widgets/sell_button.dart';
+
+class CreatePageUI extends ConsumerStatefulWidget {
   const CreatePageUI({super.key});
 
   @override
-  State<CreatePageUI> createState() => _CreatePageUIState();
+  ConsumerState<CreatePageUI> createState() => _CreatePageUIState();
 }
 
-class _CreatePageUIState extends State<CreatePageUI> {
+class _CreatePageUIState extends ConsumerState<CreatePageUI> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers
-  final _brandController = TextEditingController();
   final _itemController = TextEditingController();
   final _priceController = TextEditingController();
-  final _categoryController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _deliveryController = TextEditingController();
   final _minOrderController = TextEditingController();
-  final _imageController = TextEditingController();
   final _quantityController = TextEditingController();
 
   final List<File> _pickedImages = [];
+  bool _isSubmitting = false;
+
+  ProductCategories? _selectedCategory;
 
   String? _validateNotEmpty(String? value) {
-    if (value == null || value.trim().isEmpty)
+    if (value == null || value.trim().isEmpty) {
       return "This field cannot be empty";
-    return null;
-  }
-
-  String? _validateImageField(String? value) {
-    if (_pickedImages.isEmpty) return "Please select at least one image";
+    }
     return null;
   }
 
@@ -45,240 +53,237 @@ class _CreatePageUIState extends State<CreatePageUI> {
     );
     if (result != null && result.files.isNotEmpty) {
       setState(() {
-        _pickedImages.addAll(result.paths.map((path) => File(path!)).toList());
+        _pickedImages.addAll(result.paths.map((p) => File(p!)).toList());
       });
     }
   }
 
-  void _removeImage(int index) => setState(() => _pickedImages.removeAt(index));
+  void _removeImage(int index) {
+    setState(() => _pickedImages.removeAt(index));
+  }
 
-  void _onSellPressed() {
-    if (_formKey.currentState!.validate()) {
+  Future<void> _onSellPressed() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_pickedImages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Product submitted successfully!")),
+        const SnackBar(content: Text("Please add at least one image")),
       );
-      // TODO: Call upload function here
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    final imageService = ref.read(supabaseImageServiceProvider);
+    final productService = ref.read(wholesaleProductServiceProvider);
+    final user = ref.read(authStateProvider).value;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User not logged in")),
+      );
+      setState(() => _isSubmitting = false);
+      return;
+    }
+
+    try {
+      final productId = const Uuid().v4();
+
+      // ✅ Get the seller profile (with location)
+      final seller = ref.read(currentUserProfileProvider).value;
+      if (seller == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Seller profile not found")),
+        );
+        setState(() => _isSubmitting = false);
+        return;
+      }
+
+      // Upload images
+      final List<String> uploadedUrls = [];
+      for (final image in _pickedImages) {
+        final url = await imageService.uploadImage(image, productId);
+        uploadedUrls.add(url);
+      }
+
+      // ✅ Create product with seller’s latitude & longitude
+      final product = WholesaleProduct(
+        productId: productId,
+        shopId: user.id,
+        minOrderQuantity: int.parse(_minOrderController.text),
+        stock: int.parse(_quantityController.text),
+        productName: _itemController.text.trim(),
+        description: _descriptionController.text.trim(),
+        category: categoryDisplayName(_selectedCategory!),
+        price: double.parse(_priceController.text),
+        imageUrls: uploadedUrls,
+        latitude: seller.latitude ?? 0.0,
+        longitude: seller.longitude ?? 0.0,
+        ratings: const [],
+      );
+
+      // Save product
+      final result = await productService.addProduct(product);
+
+      result.match(
+        (failure) => ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed: $failure")),
+        ),
+        (_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Product added successfully!")),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => WholesaleNavPage(initialIndex: 2),
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    } finally {
+      setState(() => _isSubmitting = false);
     }
   }
 
   @override
-  void dispose() {
-    _brandController.dispose();
-    _itemController.dispose();
-    _priceController.dispose();
-    _categoryController.dispose();
-    _descriptionController.dispose();
-    _deliveryController.dispose();
-    _minOrderController.dispose();
-    _imageController.dispose();
-    _quantityController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: context.colors.background,
+      backgroundColor: context.colors.surfaceContainerHighest,
       appBar: AppBar(
-        title: Text(
-          "Add item",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: context.colors.onBackground,
-          ),
-        ),
-        backgroundColor: context.colors.background,
+        backgroundColor: context.colors.surface,
         centerTitle: true,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SectionTitle("Enter item details"),
-              const SizedBox(height: 16),
-
-              // --- Form fields (rounded white look) ---
-              _buildField("Brand :", _brandController),
-              _buildField("Item :", _itemController),
-              _buildField(
-                "Price :",
-                _priceController,
-                keyboardType: TextInputType.number,
-              ),
-              _buildField("Category :", _categoryController),
-              const SizedBox(height: 12),
-
-              const SectionTitle("Description"),
-              const SizedBox(height: 8),
-              _buildField(
-                "Enter item description",
-                _descriptionController,
-                maxLines: 3,
-              ),
-
-              const SizedBox(height: 16),
-              const SectionTitle("Delivery within kms"),
-              const SizedBox(height: 8),
-              _buildField(
-                "kms :",
-                _deliveryController,
-                keyboardType: TextInputType.number,
-              ),
-
-              const SizedBox(height: 16),
-              const SectionTitle("Minimum order quantity"),
-              const SizedBox(height: 8),
-              _buildField(
-                "",
-                _minOrderController,
-                keyboardType: TextInputType.number,
-              ),
-
-              const SizedBox(height: 16),
-              const SectionTitle("Image of the item"),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: _pickImages,
-                child: Container(
-                  width: double.infinity,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    color: context.colors.surface,
-                    borderRadius: BorderRadius.circular(25.0),
-                    border: Border.all(color: Colors.black12),
-                  ),
-                  child: _pickedImages.isEmpty
-                      ? const Center(
-                          child: Text(
-                            "Tap to pick images",
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        )
-                      : ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _pickedImages.length,
-                          itemBuilder: (context, index) {
-                            return Stack(
-                              children: [
-                                Container(
-                                  margin: const EdgeInsets.all(8),
-                                  width: 120,
-                                  height: 120,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    image: DecorationImage(
-                                      image: FileImage(_pickedImages[index]),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  right: 4,
-                                  top: 4,
-                                  child: GestureDetector(
-                                    onTap: () => _removeImage(index),
-                                    child: Container(
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Colors.black54,
-                                      ),
-                                      padding: const EdgeInsets.all(4),
-                                      child: const Icon(
-                                        Icons.close,
-                                        size: 16,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-              const SectionTitle("Quantity"),
-              const SizedBox(height: 8),
-              _buildField(
-                "",
-                _quantityController,
-                keyboardType: TextInputType.number,
-              ),
-
-              const SizedBox(height: 32),
-              _buildSellButton(),
-              const SizedBox(height: 100),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildField(
-    String hint,
-    TextEditingController controller, {
-    TextInputType keyboardType = TextInputType.text,
-    int maxLines = 1,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: TextFormField(
-        controller: controller,
-        maxLines: maxLines,
-        keyboardType: keyboardType,
-        validator: _validateNotEmpty,
-        decoration: InputDecoration(
-          hintText: hint,
-          filled: true,
-          fillColor: context.colors.surface,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 16,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(25.0),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // --- Helper: Orange gradient sell button ---
-  Widget _buildSellButton() {
-    return Container(
-      width: double.infinity,
-      height: 55,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30.0),
-        gradient: LinearGradient(
-          colors: [context.colors.primary, context.colors.primaryFixedDim],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-      ),
-      child: ElevatedButton(
-        onPressed: _onSellPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30.0),
-          ),
-        ),
-        child: Text(
-          "Sell",
-          style: TextStyle(
-            fontSize: 18,
+        elevation: 1,
+        title: Text(
+          "Create Product",
+          style: theme.textTheme.titleLarge!.copyWith(
             fontWeight: FontWeight.bold,
-            color: context.colors.onPrimary,
+            color: context.colors.onSurface,
+          ),
+        ),
+      ),
+      body: AbsorbPointer(
+        absorbing: _isSubmitting,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                SectionCard(
+                  title: "Item Details",
+                  children: [
+                    CustomTextField(
+                      controller: _itemController,
+                      label: "Item Name",
+                      icon: Icons.inventory_2,
+                      validator: _validateNotEmpty,
+                    ),
+                    CustomTextField(
+                      controller: _priceController,
+                      label: "Price",
+                      keyboardType: TextInputType.number,
+                      icon: Icons.currency_rupee_rounded,
+                      validator: _validateNotEmpty,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: DropdownButtonFormField<ProductCategories>(
+                        value: _selectedCategory,
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(
+                            Icons.category,
+                            color: context.colors.primary,
+                          ),
+                          labelText: "Category",
+                          labelStyle: TextStyle(
+                            color: context.colors.onSurface.withAlpha(155),
+                          ),
+                          filled: true,
+                          fillColor: context.colors.surfaceContainer,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(
+                              color: context.colors.primary,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        items: ProductCategories.values.map((category) {
+                          return DropdownMenuItem(
+                            value: category,
+                            child: Text(categoryDisplayName(category)),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() => _selectedCategory = value);
+                        },
+                        validator: (value) =>
+                            value == null ? "Please select a category" : null,
+                      ),
+                    ),
+                  ],
+                ),
+                SectionCard(
+                  title: "Description",
+                  children: [
+                    CustomTextField(
+                      controller: _descriptionController,
+                      label: "Item Description",
+                      maxLines: 3,
+                      icon: Icons.description,
+                      validator: _validateNotEmpty,
+                    ),
+                  ],
+                ),
+                SectionCard(
+                  title: "Quantity",
+                  children: [
+                    CustomTextField(
+                      controller: _minOrderController,
+                      label: "Minimum Order Quantity",
+                      keyboardType: TextInputType.number,
+                      icon: Icons.production_quantity_limits,
+                      validator: _validateNotEmpty,
+                    ),
+                    CustomTextField(
+                      controller: _quantityController,
+                      label: "Available Stock Quantity",
+                      keyboardType: TextInputType.number,
+                      icon: Icons.numbers,
+                      validator: _validateNotEmpty,
+                    ),
+                  ],
+                ),
+                SectionCard(
+                  title: "Product Images",
+                  children: [
+                    ImagePickerGrid(
+                      pickedImages: _pickedImages,
+                      onPickImages: _pickImages,
+                      onRemoveImage: _removeImage,
+                    ),
+                  ],
+                ),
+                SellButton(
+                  onPressed: _isSubmitting ? null : _onSellPressed,
+                ),
+                if (_isSubmitting) ...[
+                  const SizedBox(height: 20),
+                  const CircularProgressIndicator(),
+                ],
+                const SizedBox(height: 100),
+              ],
+            ),
           ),
         ),
       ),

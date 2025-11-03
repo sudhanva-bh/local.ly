@@ -64,7 +64,7 @@ class _LightColors {
   final Color divider = const Color(0xFFE0E0E0);
   final Color dropShadow = const Color(0x33000000);
   final Color transparent = Colors.transparent;
-  final Color outline = const Color.fromARGB(255, 154, 154, 154);
+  final Color outline = const Color.fromARGB(255, 159, 159, 159);
 
   // Gradients
   final LinearGradient primaryGradient = const LinearGradient(
@@ -116,7 +116,7 @@ class _DarkColors {
   final Color divider = const Color(0xFF262421);
   final Color dropShadow = const Color(0x66000000);
   final Color transparent = Colors.transparent;
-  final Color outline = const Color.fromARGB(255, 76, 76, 76);
+  final Color outline = const Color.fromARGB(255, 49, 49, 49);
 
   // Gradients
   final LinearGradient primaryGradient = const LinearGradient(
