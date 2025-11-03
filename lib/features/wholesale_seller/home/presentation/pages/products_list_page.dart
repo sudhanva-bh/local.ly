@@ -33,9 +33,7 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
     });
 
     try {
-      final products = await _service.fetchAllProducts(
-        tableName: widget.tableName,
-      );
+      final products = await _service.fetchAllProducts();
       if (mounted) {
         setState(() => _products = products);
       }

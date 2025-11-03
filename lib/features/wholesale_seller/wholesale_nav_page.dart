@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/widgets/bottom_navigator.dart';
+import 'package:locally/features/wholesale_seller/create_product/pages/create_page.dart';
 import 'package:locally/features/wholesale_seller/home/presentation/pages/home_page.dart';
+import 'package:locally/features/wholesale_seller/products/pages/products_page.dart';
 import 'package:locally/features/wholesale_seller/profile_page/pages/profile_page.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -17,9 +19,9 @@ class _WholesaleNavPageState extends ConsumerState<WholesaleNavPage> {
 
   final List<Widget> _pages = const [
     HomePage(),
+    ProductsPage(),
+    CreatePageUI(),
     Center(child: Text('Orders')),
-    Center(child: Text('Products')),
-    Center(child: Text('Products')),
     ProfilePage(),
   ];
 
@@ -58,9 +60,12 @@ class _WholesaleNavPageState extends ConsumerState<WholesaleNavPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      extendBody: true, // Ensures nav bar floats nicely over blurred background
-      body: _pages[_currentIndex],
+      extendBody: true,
+      body: IndexedStack(
+        // 👈 persists state across tabs
+        index: _currentIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onNavTap,

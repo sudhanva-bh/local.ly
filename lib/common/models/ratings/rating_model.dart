@@ -1,12 +1,11 @@
 import 'dart:convert';
 
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 class Rating {
   final String ratingId;
-
   final int stars;
   final String title;
   final String? description;
+
   Rating({
     required this.ratingId,
     required this.stars,
@@ -29,7 +28,7 @@ class Rating {
   }
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
+    return {
       'ratingId': ratingId,
       'stars': stars,
       'title': title,
@@ -38,16 +37,22 @@ class Rating {
   }
 
   factory Rating.fromMap(Map<String, dynamic> map) {
+    int parseStars(dynamic v) {
+      if (v is int) return v;
+      if (v is double) return v.toInt();
+      if (v is String) return int.tryParse(v) ?? 0;
+      return 0;
+    }
+
     return Rating(
-      ratingId: map['ratingId'] as String,
-      stars: map['stars'] as int,
-      title: map['title'] as String,
-      description: map['description'] as String,
+      ratingId: (map['ratingId'] ?? map['id'] ?? '').toString(),
+      stars: parseStars(map['stars']),
+      title: (map['title'] ?? '').toString(),
+      description: map['description'] as String?,
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory Rating.fromJson(String source) =>
-      Rating.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory Rating.fromJson(String source) => Rating.fromMap(json.decode(source));
 }

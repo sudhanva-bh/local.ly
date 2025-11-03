@@ -36,272 +36,279 @@ class ProfileBody extends ConsumerWidget {
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // ... (Profile image + Shop name + Product count card) ...
-            // 🏪 Profile image + edit
-            Stack(
-              alignment: Alignment.bottomRight,
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundImage: seller.profileImageUrl != null
-                      ? NetworkImage(seller.profileImageUrl!)
-                      : null,
-                  child: seller.profileImageUrl == null
-                      ? const Icon(Icons.store, size: 48)
-                      : null,
-                ),
-                if (isCurrentUser)
-                  GestureDetector(
-                    onTap: () {
-                      // TODO: Implement profile image editing
-                    },
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundColor: colors.primary,
-                      child: const Icon(
-                        Icons.edit,
-                        color: Colors.white,
-                        size: 18,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 100),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // ... (Profile image + Shop name + Product count card) ...
+              // 🏪 Profile image + edit
+              Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundImage: seller.profileImageUrl != null
+                        ? NetworkImage(seller.profileImageUrl!)
+                        : null,
+                    child: seller.profileImageUrl == null
+                        ? const Icon(Icons.store, size: 48)
+                        : null,
+                  ),
+                  if (isCurrentUser)
+                    GestureDetector(
+                      onTap: () {
+                        // TODO: Implement profile image editing
+                      },
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: colors.primary,
+                        child: const Icon(
+                          Icons.edit,
+                          color: Colors.white,
+                          size: 18,
+                        ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
+                ],
+              ),
+              const SizedBox(height: 12),
 
-            // 🏷️ Shop name
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Flexible(
-                  child: Text(
-                    seller.shopName,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+              // 🏷️ Shop name
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Text(
+                      seller.shopName,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ),
+                  if (isCurrentUser)
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined),
+                      onPressed: () => _editField(
+                        context,
+                        ref: ref, // Pass ref
+                        title: "Edit Shop Name",
+                        initialValue: seller.shopName,
+                        onSave: (val) async {
+                          await ref
+                              .read(profileControllerProvider.notifier)
+                              .updateShopName(val);
+                        },
+                      ),
+                    ),
+                ],
+              ),
+              Text(
+                seller.sellerType.toWords(),
+                style: TextStyle(color: colors.onSurface.withOpacity(0.6)),
+              ),
+
+              const SizedBox(height: 20),
+
+              // 📦 Product count
+              Card(
+                elevation: 0,
+                color: colors.surfaceContainerHighest,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                if (isCurrentUser)
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined),
-                    onPressed: () => _editField(
-                      context,
-                      ref: ref, // Pass ref
-                      title: "Edit Shop Name",
-                      initialValue: seller.shopName,
-                      onSave: (val) async {
+                child: ListTile(
+                  leading: const Icon(Icons.inventory_2_outlined),
+                  title: const Text("Products"),
+                  subtitle: Text('$productCount total'),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 📞 Phone number
+              EditableInfoTile(
+                title: 'Phone Number',
+                value: seller.phoneNumber ?? 'Not provided',
+                icon: Icons.phone_outlined,
+                editable: isCurrentUser,
+                onEdit: () => _editField(
+                  context,
+                  ref: ref, // Pass ref
+                  title: "Edit Phone Number",
+                  initialValue: seller.phoneNumber ?? '',
+                  keyboardType: TextInputType.phone,
+                  onSave: (val) async {
+                    await ref
+                        .read(profileControllerProvider.notifier)
+                        .updatePhoneNumber(val);
+                  },
+                ),
+              ),
+              EditableInfoTile(
+                title: 'Email',
+                value: seller.email, // Assuming seller.email exists
+                icon: Icons.email_outlined,
+                editable: false,
+              ),
+
+              // 🏠 Address
+              EditableInfoTile(
+                title: 'Address',
+                value: seller.address ?? 'No address set',
+                icon: Icons.location_on_outlined,
+                editable: isCurrentUser,
+                onEdit: () => _editField(
+                  context,
+                  ref: ref, // Pass ref
+                  title: "Edit Address",
+                  initialValue: seller.address ?? '',
+                  onSave: (val) async {
+                    final updatedSeller = seller.copyWith(address: val);
+                    await ref
+                        .read(profileControllerProvider.notifier)
+                        .updateProfile(updatedSeller);
+                  },
+                ),
+              ),
+
+              // 🗺️ Map display
+              if (hasLocation)
+                ShopLocationMap(seller: seller) // Use public widget
+              else
+                const Text('No location set'),
+              if (isCurrentUser)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.map_outlined),
+                    label: const Text("Set Location"),
+                    onPressed: () async {
+                      // ... (rest of the map logic)
+                      final result = await showLocationPicker(context);
+                      if (result != null) {
+                        final lat = result["latitude"] as double;
+                        final lon = result["longitude"] as double;
+                        final address = result["address"] as String?;
+
+                        final shouldUpdateAddress = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text("Update Address"),
+                            content: const Text(
+                              "Do you also want to update your address from this location?",
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text("No"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text("Yes"),
+                              ),
+                            ],
+                          ),
+                        );
+
                         await ref
                             .read(profileControllerProvider.notifier)
-                            .updateShopName(val);
-                      },
+                            .updateShopLocation(
+                              latitude: lat,
+                              longitude: lon,
+                              address:
+                                  shouldUpdateAddress == true && address != null
+                                  ? address
+                                  : seller.address ?? '',
+                            );
+                      }
+                    },
+                  ),
+                ),
+
+              // --- ✨ NEW NON-EDITABLE FIELDS ---
+              const SizedBox(height: 16),
+              EditableInfoTile(
+                title: 'Joined On',
+                value: _formatDate(
+                  seller.createdAt,
+                ), // Assuming seller.createdAt exists
+                icon: Icons.calendar_today_outlined,
+                editable: false,
+              ),
+              EditableInfoTile(
+                title: 'Last Updated',
+                value: _formatDate(
+                  seller.updatedAt,
+                ), // Assuming seller.updatedAt exists
+                icon: Icons.history_outlined,
+                editable: false,
+              ),
+
+              // --- END OF NEW FIELDS ---
+              const Divider(height: 32),
+
+              // ⭐ Ratings
+              if (seller.ratings != null && seller.ratings!.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Ratings',
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                  ),
-              ],
-            ),
-            Text(
-              seller.sellerType.toWords(),
-              style: TextStyle(color: colors.onSurface.withOpacity(0.6)),
-            ),
-
-            const SizedBox(height: 20),
-
-            // 📦 Product count
-            Card(
-              elevation: 0,
-              color: colors.surfaceContainerHighest,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                leading: const Icon(Icons.inventory_2_outlined),
-                title: const Text("Products"),
-                subtitle: Text('$productCount total'),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // 📞 Phone number
-            EditableInfoTile(
-              title: 'Phone Number',
-              value: seller.phoneNumber ?? 'Not provided',
-              icon: Icons.phone_outlined,
-              editable: isCurrentUser,
-              onEdit: () => _editField(
-                context,
-                ref: ref, // Pass ref
-                title: "Edit Phone Number",
-                initialValue: seller.phoneNumber ?? '',
-                keyboardType: TextInputType.phone,
-                onSave: (val) async {
-                  await ref
-                      .read(profileControllerProvider.notifier)
-                      .updatePhoneNumber(val);
-                },
-              ),
-            ),
-            EditableInfoTile(
-              title: 'Email',
-              value: seller.email, // Assuming seller.email exists
-              icon: Icons.email_outlined,
-              editable: false,
-            ),
-
-            // 🏠 Address
-            EditableInfoTile(
-              title: 'Address',
-              value: seller.address ?? 'No address set',
-              icon: Icons.location_on_outlined,
-              editable: isCurrentUser,
-              onEdit: () => _editField(
-                context,
-                ref: ref, // Pass ref
-                title: "Edit Address",
-                initialValue: seller.address ?? '',
-                onSave: (val) async {
-                  final updatedSeller = seller.copyWith(address: val);
-                  await ref
-                      .read(profileControllerProvider.notifier)
-                      .updateProfile(updatedSeller);
-                },
-              ),
-            ),
-
-            // 🗺️ Map display
-            if (hasLocation)
-              ShopLocationMap(seller: seller) // Use public widget
-            else
-              const Text('No location set'),
-            if (isCurrentUser)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.map_outlined),
-                  label: const Text("Set Location"),
-                  onPressed: () async {
-                    // ... (rest of the map logic)
-                    final result = await showLocationPicker(context);
-                    if (result != null) {
-                      final lat = result["latitude"] as double;
-                      final lon = result["longitude"] as double;
-                      final address = result["address"] as String?;
-
-                      final shouldUpdateAddress = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("Update Address"),
-                          content: const Text(
-                            "Do you also want to update your address from this location?",
+                    const SizedBox(height: 8),
+                    ...seller.ratings!
+                        .take(3)
+                        .map(
+                          (r) => ListTile(
+                            leading: const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                            ),
+                            title: Text('${r.stars}/5'),
+                            subtitle: Text(r.description ?? ''),
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text("No"),
-                            ),
-                            ElevatedButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text("Yes"),
-                            ),
-                          ],
                         ),
-                      );
+                  ],
+                )
+              else
+                const Text('No ratings yet'),
 
-                      await ref
-                          .read(profileControllerProvider.notifier)
-                          .updateShopLocation(
-                            latitude: lat,
-                            longitude: lon,
-                            address:
-                                shouldUpdateAddress == true && address != null
-                                ? address
-                                : seller.address ?? '',
-                          );
-                    }
-                  },
-                ),
-              ),
+              const SizedBox(height: 16),
 
-            // --- ✨ NEW NON-EDITABLE FIELDS ---
-            const SizedBox(height: 16),
-            EditableInfoTile(
-              title: 'Joined On',
-              value: _formatDate(
-                seller.createdAt,
-              ), // Assuming seller.createdAt exists
-              icon: Icons.calendar_today_outlined,
-              editable: false,
-            ),
-            EditableInfoTile(
-              title: 'Last Updated',
-              value: _formatDate(
-                seller.updatedAt,
-              ), // Assuming seller.updatedAt exists
-              icon: Icons.history_outlined,
-              editable: false,
-            ),
-
-            // --- END OF NEW FIELDS ---
-            const Divider(height: 32),
-
-            // ⭐ Ratings
-            if (seller.ratings != null && seller.ratings!.isNotEmpty)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Ratings',
-                    style: Theme.of(context).textTheme.titleMedium,
+              // ✅ --- NEW SIGN OUT BUTTON ---
+              if (isCurrentUser)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.logout),
+                    label: const Text('Sign Out'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: colors.onSurface.withOpacity(0.7),
+                    ),
+                    onPressed: () async {
+                      await ref.read(authControllerProvider.notifier).signOut();
+                    },
                   ),
-                  const SizedBox(height: 8),
-                  ...seller.ratings!
-                      .take(3)
-                      .map(
-                        (r) => ListTile(
-                          leading: const Icon(Icons.star, color: Colors.amber),
-                          title: Text('${r.stars}/5'),
-                          subtitle: Text(r.description ?? ''),
-                        ),
-                      ),
-                ],
-              )
-            else
-              const Text('No ratings yet'),
+                ),
 
-            const SizedBox(height: 16),
-
-            // ✅ --- NEW SIGN OUT BUTTON ---
-            if (isCurrentUser)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: TextButton.icon(
-                  icon: const Icon(Icons.logout),
-                  label: const Text('Sign Out'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: colors.onSurface.withOpacity(0.7),
+              // --- DELETE ACCOUNT BUTTON (Existing) ---
+              if (isCurrentUser)
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.delete_forever),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colors.errorContainer,
+                    foregroundColor: colors.onErrorContainer,
                   ),
-                  onPressed: () async {
-                    await ref.read(authControllerProvider.notifier).signOut();
-                  },
+                  label: const Text('Delete Account'),
+                  onPressed: () =>
+                      _confirmDeleteProfile(context, ref, seller.uid),
                 ),
-              ),
-
-            // --- DELETE ACCOUNT BUTTON (Existing) ---
-            if (isCurrentUser)
-              ElevatedButton.icon(
-                icon: const Icon(Icons.delete_forever),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colors.errorContainer,
-                  foregroundColor: colors.onErrorContainer,
-                ),
-                label: const Text('Delete Account'),
-                onPressed: () =>
-                    _confirmDeleteProfile(context, ref, seller.uid),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

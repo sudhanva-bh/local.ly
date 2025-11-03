@@ -1,5 +1,5 @@
-// lib/common/models/products/wholesale/wholesale_product_model.dart
 import 'dart:convert';
+import 'package:locally/common/models/ratings/rating_model.dart';
 
 class WholesaleProduct {
   final String productId;
@@ -13,7 +13,7 @@ class WholesaleProduct {
   final List<String> imageUrls;
   final double latitude;
   final double longitude;
-  final List<Map<String, dynamic>> ratings;
+  final List<Rating> ratings;
 
   WholesaleProduct({
     required this.productId,
@@ -30,14 +30,16 @@ class WholesaleProduct {
     required this.ratings,
   });
 
+  /// Factory: From JSON map
   factory WholesaleProduct.fromJson(Map<String, dynamic> json) {
     return WholesaleProduct.fromMap(json);
   }
 
+  /// Factory: From map with robust parsing and type-safety
   factory WholesaleProduct.fromMap(Map<String, dynamic> map) {
-    // parse images
+    // --- Parse image URLs ---
     List<String> parsedImages = [];
-    final rawImages = map['image_urls'];
+    final rawImages = map['image_urls'] ?? map['imageUrls'];
     if (rawImages != null) {
       if (rawImages is List) {
         parsedImages = rawImages.map((e) => e.toString()).toList();
@@ -57,22 +59,31 @@ class WholesaleProduct {
       }
     }
 
-    // ratings
-    List<Map<String, dynamic>> parsedRatings = [];
+    // --- Parse ratings ---
+    List<Rating> parsedRatings = [];
     final rawRatings = map['ratings'];
     if (rawRatings != null) {
       if (rawRatings is List) {
-        parsedRatings = rawRatings.cast<Map<String, dynamic>>();
+        parsedRatings = rawRatings
+            .map(
+              (r) => r is Map<String, dynamic>
+                  ? Rating.fromMap(r)
+                  : Rating.fromJson(r.toString()),
+            )
+            .toList();
       } else if (rawRatings is String) {
         try {
           final decoded = jsonDecode(rawRatings);
           if (decoded is List) {
-            parsedRatings = decoded.cast<Map<String, dynamic>>();
+            parsedRatings = decoded
+                .map((r) => Rating.fromMap(r as Map<String, dynamic>))
+                .toList();
           }
         } catch (_) {}
       }
     }
 
+    // --- Safe parsing helpers ---
     double parseDouble(dynamic v) {
       if (v == null) return 0.0;
       if (v is double) return v;
@@ -89,14 +100,15 @@ class WholesaleProduct {
       return 0;
     }
 
+    // --- Construct instance ---
     return WholesaleProduct(
       productId: (map['product_id'] ?? map['id'] ?? '').toString(),
       shopId: (map['shop_id'] ?? '').toString(),
-      minOrderQuantity:
-          parseInt(map['min_order_quantity'] ?? map['minOrderQuantity']),
+      minOrderQuantity: parseInt(
+        map['min_order_quantity'] ?? map['minOrderQuantity'],
+      ),
       stock: parseInt(map['stock']),
-      productName:
-          (map['product_name'] ?? map['productName'] ?? '').toString(),
+      productName: (map['product_name'] ?? map['productName'] ?? '').toString(),
       description: (map['description'] ?? '').toString(),
       category: (map['category'] ?? '').toString(),
       price: parseDouble(map['price']),
@@ -107,6 +119,7 @@ class WholesaleProduct {
     );
   }
 
+  /// Convert model to a plain Map
   Map<String, dynamic> toMap() {
     return {
       'product_id': productId,
@@ -120,7 +133,55 @@ class WholesaleProduct {
       'image_urls': imageUrls,
       'latitude': latitude,
       'longitude': longitude,
-      'ratings': ratings,
+      'ratings': ratings.map((r) => r.toMap()).toList(),
     };
   }
+
+  /// Convert model to JSON string
+  String toJson() => json.encode(toMap());
+
+  /// Create model from JSON string
+  factory WholesaleProduct.fromJsonString(String source) =>
+      WholesaleProduct.fromMap(json.decode(source));
+
+  /// Copy with method for immutability
+  WholesaleProduct copyWith({
+    String? productId,
+    String? shopId,
+    int? minOrderQuantity,
+    int? stock,
+    String? productName,
+    String? description,
+    String? category,
+    double? price,
+    List<String>? imageUrls,
+    double? latitude,
+    double? longitude,
+    List<Rating>? ratings,
+  }) {
+    return WholesaleProduct(
+      productId: productId ?? this.productId,
+      shopId: shopId ?? this.shopId,
+      minOrderQuantity: minOrderQuantity ?? this.minOrderQuantity,
+      stock: stock ?? this.stock,
+      productName: productName ?? this.productName,
+      description: description ?? this.description,
+      category: category ?? this.category,
+      price: price ?? this.price,
+      imageUrls: imageUrls ?? this.imageUrls,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      ratings: ratings ?? this.ratings,
+    );
+  }
+
+  /// Computed average rating (0.0 if none)
+  double get averageRating {
+    if (ratings.isEmpty) return 0.0;
+    final total = ratings.fold<int>(0, (sum, r) => sum + r.stars);
+    return total / ratings.length;
+  }
+
+  /// Number of ratings
+  int get ratingCount => ratings.length;
 }

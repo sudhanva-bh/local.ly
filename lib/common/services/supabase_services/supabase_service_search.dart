@@ -53,10 +53,8 @@ class SupabaseService {
   }) async {
     try {
       final data = await _client.from(tableName).select();
-      if (data is List) {
-        return data.map((e) => fromJson(Map<String, dynamic>.from(e))).toList();
-      }
-      return [];
+      return data.map((e) => fromJson(Map<String, dynamic>.from(e))).toList();
+
     } catch (e) {
       debugPrint('Supabase table fetch error ($tableName): $e');
       rethrow;

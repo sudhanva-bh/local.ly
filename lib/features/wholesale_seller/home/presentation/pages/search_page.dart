@@ -55,7 +55,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     });
 
     try {
-      final results = await service.fetchAllProducts(tableName: widget.tableName);
+      final results = await service.fetchAllProducts();
       setState(() => _products = results);
     } catch (e) {
       setState(() => _error = 'Error fetching products: $e');

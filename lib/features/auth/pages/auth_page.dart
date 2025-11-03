@@ -104,7 +104,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                   curve: Curves.easeOutBack,
                   height:
                       showSignUp // This now comes from the controller
-                      ? screenHeight * 0.65 - dragOffset
+                      ? screenHeight * 0.52 - dragOffset
                       : screenHeight * 0.45 - dragOffset,
                   width: double.infinity,
                   decoration: BoxDecoration(

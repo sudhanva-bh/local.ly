@@ -22,5 +22,6 @@ final userWholesaleProductsProvider =
   if (user == null) return const Stream.empty();
 
   final service = ref.watch(wholesaleProductServiceProvider);
-  return service.getProductsByShop(user.id);
+  return service.streamProductsForCurrentSeller();
 });
+

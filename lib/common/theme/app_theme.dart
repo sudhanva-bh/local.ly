@@ -40,6 +40,7 @@ class AppTheme {
         onBackground: colors.onBackground,
         onSurface: colors.onSurface,
         onError: colors.onPrimary,
+        outline: colors.outline,
       ),
 
       // AppBar Theme
@@ -140,6 +141,7 @@ class AppTheme {
         onBackground: colors.onBackground,
         onSurface: colors.onSurface,
         onError: colors.onPrimary,
+        outline: colors.outline,
       ),
 
       appBarTheme: AppBarTheme(
