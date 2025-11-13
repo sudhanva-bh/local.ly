@@ -1,12 +1,9 @@
 // lib/features/setup/setup_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/models/users/seller_model.dart';
 import 'package:locally/common/providers/notification_provider.dart';
-import 'package:locally/common/providers/theme_provider.dart';
 import 'package:locally/common/routes/app_routes.dart';
-import 'package:locally/features/auth/controllers/auth_controller.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:locally/common/utilities/custom_snackbar.dart';
 import 'package:locally/common/providers/profile_provider.dart';
@@ -194,8 +191,6 @@ class _SetupPageState extends ConsumerState<SetupPage> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeProvider);
-    final isDark = themeMode == ThemeMode.dark;
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
