@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:locally/common/routes/app_routes.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+
+import 'package:locally/common/routes/app_routes.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -17,6 +20,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   final PageController _pageController = PageController();
+
+  Timer? _timer; // ADDED
+  final int _numPages = 3; // ADDED
 
   @override
   void initState() {
@@ -46,10 +52,25 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     Future.delayed(const Duration(milliseconds: 300), () {
       _slideController.forward();
     });
+
+    // ADDED: Start the automatic page cycling
+    _timer = Timer.periodic(const Duration(seconds: 2), (Timer timer) {
+      int currentPage = _pageController.page?.round() ?? 0;
+      int nextPage = (currentPage + 1) % _numPages;
+
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _fadeController.dispose();
     _slideController.dispose();
     _pageController.dispose();
@@ -118,6 +139,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 position: _slideAnimation,
                 child: Column(
                   children: [
+                    // ... (Welcome to Locally text)
                     Text(
                       "Welcome to",
                       style: GoogleFonts.poppins(
@@ -162,7 +184,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     const SizedBox(height: 20),
                     SmoothPageIndicator(
                       controller: _pageController,
-                      count: 3,
+                      count: _numPages, // UPDATED
                       effect: ExpandingDotsEffect(
                         activeDotColor: colorScheme.primary,
                         dotColor: colorScheme.outlineVariant,
@@ -174,12 +196,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 ),
               ),
               const Spacer(),
+              // ... (Get Started Button)
               ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    AppRoutes.authPage,
-                    (route) => false,
-                  );
+                  Navigator.of(context).pushNamed(AppRoutes.authPage);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
