@@ -1,0 +1,90 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:locally/common/widgets/bottom_navigator.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+class RetailNavPage extends ConsumerStatefulWidget {
+  final int initialIndex;
+
+  const RetailNavPage({super.key, this.initialIndex = 0});
+
+  @override
+  ConsumerState<RetailNavPage> createState() => _RetailNavPageState();
+}
+
+class _RetailNavPageState extends ConsumerState<RetailNavPage> {
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with provided starting index
+    _currentIndex = widget.initialIndex;
+  }
+
+  final List<Widget> _pages = const [
+    Center(child: Text('Home')),
+    Center(child: Text('Order')),
+    Center(child: Text('Create')),
+    Center(child: Text('Orders')),
+    Center(child: Text('Profile')),
+  ];
+
+  final List<BottomNavItem> _navItems = [
+    BottomNavItem(
+      icon: Icons.dashboard_outlined,
+      activeIcon: Icons.dashboard,
+      label: 'Dashboard',
+    ),
+    BottomNavItem(
+      icon: Icons.inventory_2_outlined,
+      activeIcon: Icons.inventory_2,
+      label: 'Products',
+    ),
+    BottomNavItem(
+      icon: LucideIcons.circlePlus,
+      activeIcon: LucideIcons.circlePlus,
+      label: 'Create',
+    ),
+    BottomNavItem(
+      icon: LucideIcons.shoppingBag,
+      activeIcon: LucideIcons.shoppingBag,
+      label: 'Orders',
+    ),
+    BottomNavItem(
+      icon: Icons.person_outline,
+      activeIcon: Icons.person,
+      label: 'Profile',
+    ),
+  ];
+
+  void _onNavTap(int index) {
+    setState(() => _currentIndex = index);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBody: true,
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _pages,
+      ),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: _currentIndex,
+        onTap: _onNavTap,
+        items: _navItems
+            .map(
+              (item) => BottomNavigationBarItem(
+                icon: Icon(item.icon),
+                activeIcon: item.activeIcon != null
+                    ? Icon(item.activeIcon)
+                    : Icon(item.icon),
+                label: item.label,
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+}

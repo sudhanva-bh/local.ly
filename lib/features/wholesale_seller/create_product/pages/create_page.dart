@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/models/product_categories/product_categories.dart';
 import 'package:locally/common/providers/profile_provider.dart';
-import 'package:locally/features/wholesale_seller/products/pages/products_page.dart';
 import 'package:locally/features/wholesale_seller/wholesale_nav_page.dart';
 import 'package:uuid/uuid.dart';
 

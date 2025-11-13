@@ -22,7 +22,7 @@ class ViewProduct extends ConsumerWidget {
     final productAsync = ref.watch(wholesaleProductByIdProvider(productId));
 
     return Scaffold(
-      backgroundColor: colors.surface,
+      backgroundColor: context.colors.surfaceContainerHighest,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,

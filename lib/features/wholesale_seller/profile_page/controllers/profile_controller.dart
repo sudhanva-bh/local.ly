@@ -5,7 +5,6 @@ import 'package:locally/common/models/users/seller_model.dart';
 import 'package:locally/common/providers/auth_providers.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
 import 'package:locally/common/providers/profile_provider.dart';
-import 'package:locally/common/services/products/wholesale_product_service.dart';
 
 /// Controller for handling all profile-related logic.
 class ProfileController extends StateNotifier<AsyncValue<Seller?>> {

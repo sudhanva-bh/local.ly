@@ -1,6 +1,5 @@
 import 'package:locally/common/gates/app_gate.dart';
 import 'package:locally/features/auth/pages/auth_page.dart';
-import 'package:locally/features/retail_seller/home/presentation/pages/retail_home_page.dart';
 import 'package:locally/features/setup/setup_page.dart';
 import 'package:locally/features/wholesale_seller/wholesale_nav_page.dart';
 
@@ -16,6 +15,5 @@ class AppRoutes {
     AppRoutes.authPage: (context) => const AuthPage(),
     AppRoutes.setupPage: (context) => const SetupPage(),
     AppRoutes.wholesaleNavPage: (context) => const WholesaleNavPage(),
-    AppRoutes.retailHomePage: (context) => const RetailHomePage(),
   };
 }

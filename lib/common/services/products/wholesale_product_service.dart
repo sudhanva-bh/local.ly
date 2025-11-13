@@ -8,9 +8,9 @@ class WholesaleProductService {
   final SupabaseClient _supabase;
   late final SupabaseService _supabaseService;
   static const _tableName = 'wholesale_products';
-  final SupabaseImageService _imageService = SupabaseImageService();
+  final SupabaseImageService _imageService;
 
-  WholesaleProductService(this._supabase) {
+  WholesaleProductService(this._supabase, this._imageService) {
     _supabaseService = SupabaseService(_supabase);
   }
 

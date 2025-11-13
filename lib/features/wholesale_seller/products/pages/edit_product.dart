@@ -47,7 +47,7 @@ class _EditProductState extends ConsumerState<EditProduct> {
     );
 
     return Scaffold(
-      backgroundColor: colors.surface,
+      backgroundColor: context.colors.surfaceContainerHighest,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: const Text("Edit Product"),

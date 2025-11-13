@@ -1,6 +1,7 @@
 // lib/features/products/pages/my_products_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/models/product_categories/product_categories.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
 import 'package:locally/features/wholesale_seller/products/providers/product_filter_provider.dart';
@@ -18,6 +19,7 @@ class ProductsPage extends ConsumerWidget {
     final selectedCategory = ref.watch(selectedCategoryProvider);
 
     return Scaffold(
+      backgroundColor: context.colors.surfaceContainerHighest,
       appBar: AppBar(
         title: const Text('My Products'),
       ),

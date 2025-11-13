@@ -223,22 +223,6 @@ class _SetupPageState extends ConsumerState<SetupPage> {
           // Add flat aesthetic
           elevation: 0,
           scrolledUnderElevation: 0,
-          actions: [
-            IconButton(
-              icon: Icon(isDark ? Icons.dark_mode : Icons.light_mode),
-              onPressed: () => ref.read(themeProvider.notifier).toggleTheme(),
-            ),
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () {
-                ref.read(authControllerProvider.notifier).signOut();
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  AppRoutes.authPage,
-                  (route) => false,
-                );
-              },
-            ),
-          ],
         ),
         body: Center(
           child: AnimatedContainer(
