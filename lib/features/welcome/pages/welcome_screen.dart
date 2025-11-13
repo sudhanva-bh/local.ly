@@ -196,7 +196,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 ),
               ),
               const Spacer(),
-              // ... (Get Started Button)
               ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pushNamed(AppRoutes.authPage);

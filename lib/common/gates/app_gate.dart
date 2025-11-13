@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/models/users/seller_model.dart';
 import 'package:locally/common/providers/auth_providers.dart';
 import 'package:locally/common/providers/profile_provider.dart';
+import 'package:locally/features/retail_seller/retail_nav_page.dart';
 import 'package:locally/features/setup/setup_page.dart';
 import 'package:locally/features/welcome/pages/welcome_screen.dart';
 import 'package:locally/features/wholesale_seller/wholesale_nav_page.dart';
@@ -56,7 +57,7 @@ class _ProfileGate extends ConsumerWidget {
             case SellerType.wholesaleSeller:
               return const WholesaleNavPage();
             case SellerType.retailSeller:
-              return const Placeholder();
+              return const RetailNavPage();
           }
         }
       },

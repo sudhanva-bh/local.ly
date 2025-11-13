@@ -8,7 +8,7 @@ import 'package:locally/common/gates/app_gate.dart';
 import 'package:locally/common/models/users/seller_model.dart';
 import 'package:locally/features/auth/controllers/auth_controller.dart';
 import 'package:locally/common/widgets/location_picker.dart';
-import 'package:locally/features/wholesale_seller/profile_page/controllers/profile_controller.dart';
+import 'package:locally/features/retail_seller/profile_page/controllers/profile_controller.dart';
 import 'editable_info_tile.dart';
 import 'shop_location_map.dart';
 

@@ -41,8 +41,8 @@ class CustomBottomNavBar extends StatelessWidget {
             ),
             child: Theme(
               data: Theme.of(context).copyWith(
-                splashColor: Colors.white.withOpacity(0.3),
-                highlightColor: Colors.white.withOpacity(0.15),
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
               ),
               child: BottomNavigationBar(
                 backgroundColor: Colors.transparent,

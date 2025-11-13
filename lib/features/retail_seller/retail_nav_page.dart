@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/widgets/bottom_navigator.dart';
+import 'package:locally/features/retail_seller/profile_page/pages/profile_page.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class RetailNavPage extends ConsumerStatefulWidget {
@@ -27,7 +28,7 @@ class _RetailNavPageState extends ConsumerState<RetailNavPage> {
     Center(child: Text('Order')),
     Center(child: Text('Create')),
     Center(child: Text('Orders')),
-    Center(child: Text('Profile')),
+    ProfilePage(),
   ];
 
   final List<BottomNavItem> _navItems = [
