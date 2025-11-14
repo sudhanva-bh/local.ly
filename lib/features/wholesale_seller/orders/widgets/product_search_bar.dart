@@ -37,10 +37,8 @@ class _ProductSearchBarState extends ConsumerState<ProductSearchBar> {
   Widget build(BuildContext context) {
     // 6. Listen for *external* changes to the filter provider
     // (e.g., if the user hits "Reset" in the filter sheet)
-    ref.listen(searchFiltersProvider.select((filters) => filters.searchText), (
-      previous,
-      next,
-    ) {
+    ref.listen(searchFiltersProvider.select((filters) => filters.searchText),
+        (previous, next) {
       // If the provider's text changes and it's different from the
       // controller's text, update the controller.
       if (next != _searchController.text) {
