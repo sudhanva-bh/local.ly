@@ -98,3 +98,28 @@ class ProfileService {
     }
   }
 }
+
+extension ProfileLocation on ProfileService {
+  /// Updates the current seller's location
+  Future<Either<String, void>> updateLocation({
+    required String uid,
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      await _supabase
+          .from(ProfileService._tableName)
+          .update({
+            'latitude': latitude,
+            'longitude': longitude,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', uid);
+      return Right(null);
+    } on PostgrestException catch (e) {
+      return Left(e.message);
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+}
