@@ -1,17 +1,81 @@
-// lib/features/wholesale_seller/products/pages/view_product.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
+import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
-import 'package:locally/features/retail_seller/products/pages/edit_product.dart';
+import 'package:locally/features/retail_seller/view_product_for_order/widgets/expanded_product_map_sheet.dart';
+import 'package:locally/features/retail_seller/view_product_for_order/widgets/order_bottom_sheet.dart';
+import 'package:locally/features/retail_seller/view_product_for_order/widgets/product_map.dart';
+import 'package:locally/features/retail_seller/view_product_for_order/widgets/product_ratings_section.dart';
 import 'package:locally/common/widgets/products/image_gallary.dart';
 
 class ViewProduct extends ConsumerWidget {
   final String productId;
   const ViewProduct({super.key, required this.productId});
+
+  /// Extracted method to show the bottom sheet
+  void _showExpandedMap(BuildContext context, WholesaleProduct product) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Allows sheet to be taller
+      backgroundColor: Colors.transparent, // For rounded corners
+      builder: (context) {
+        return ExpandedProductMapSheet(product: product);
+      },
+    );
+  }
+
+  /// Method to show the order bottom sheet
+  void _showOrderSheet(BuildContext context, WholesaleProduct product) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // So keyboard (if any) doesn't hide it
+      backgroundColor: Colors.transparent, // For rounded corners
+      builder: (context) {
+        return Padding(
+          // Handle the system's bottom safe area (like the gesture bar)
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: OrderBottomSheet(product: product),
+        );
+      },
+    );
+  }
+
+  /// --- WIDGET WITH FIX ---
+  Widget _buildBottomBar(BuildContext context, WholesaleProduct product) {
+    final colors = context.colors;
+
+    return BottomAppBar(
+      color: colors.surfaceDim,
+      elevation: 10,
+      height: 90,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: colors.primary,
+            foregroundColor: colors.onPrimary,
+            // Reduced padding from 14 to 12
+            padding: const EdgeInsets.symmetric(vertical: 0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(100), // Fully rounded
+            ),
+          ),
+          onPressed: () => _showOrderSheet(context, product),
+          child: Center(
+            child: const Text(
+              "Order Now",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// --- END FIX ---
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,19 +91,12 @@ class ViewProduct extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
       ),
-      floatingActionButton: productAsync.hasValue && productAsync.value != null
-          ? FloatingActionButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditProduct(
-                    productId: productId,
-                  ),
-                ),
-              ),
-              child: const Icon(Icons.edit),
-            )
-          : null,
+      bottomNavigationBar: productAsync.when(
+        data: (product) =>
+            product != null ? _buildBottomBar(context, product) : null,
+        loading: () => null, // No bar while loading
+        error: (_, __) => null, // No bar on error
+      ),
       body: productAsync.when(
         data: (product) {
           if (product == null) {
@@ -47,10 +104,12 @@ class ViewProduct extends ConsumerWidget {
           }
 
           return SingleChildScrollView(
+            // Added padding to ensure content clears the bottom bar
+            padding: const EdgeInsets.only(bottom: 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// 🖼️ Image gallery
+                /// 🖼️ Image gallery (Assumed to exist)
                 ProductImageGallery(imageUrls: product.imageUrls),
                 const SizedBox(height: 16),
 
@@ -118,25 +177,6 @@ class ViewProduct extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
 
-                      if (product.ratings.isNotEmpty) ...[
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              color: Colors.amber,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              "${product.averageRating.toStringAsFixed(1)} "
-                              "(${product.ratingCount} ratings)",
-                              style: text.bodyMedium,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-
                       Divider(color: colors.outline.withOpacity(0.5)),
                       const SizedBox(height: 12),
 
@@ -155,6 +195,13 @@ class ViewProduct extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
 
+                      /// 🌟 Ratings Section
+                      if (product.ratings.isNotEmpty)
+                        ProductRatingsSection(
+                          ratings: product.ratings,
+                          averageRating: product.averageRating,
+                        ),
+
                       /// 🗺️ Product location map
                       if (product.latitude != 0.0 && product.longitude != 0.0)
                         Column(
@@ -169,7 +216,18 @@ class ViewProduct extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            _buildMap(context, product),
+
+                            /// Wrapped ProductMap in a GestureDetector
+                            GestureDetector(
+                              onTap: () => _showExpandedMap(context, product),
+                              child: AbsorbPointer(
+                                // Prevents map from capturing tap
+                                child: ProductMap(
+                                  latitude: product.latitude,
+                                  longitude: product.longitude,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                     ],
@@ -182,101 +240,6 @@ class ViewProduct extends ConsumerWidget {
         loading: () =>
             const Center(child: CircularProgressIndicator.adaptive()),
         error: (error, _) => Center(child: Text('Error: $error')),
-      ),
-    );
-  }
-
-  /// 🗺️ Extracted Map Widget
-  Widget _buildMap(BuildContext context, product) {
-    final colors = context.colors;
-    final text = context.text;
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      height: 180,
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(23),
-        border: Border.all(color: colors.outline.withOpacity(0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          FlutterMap(
-            options: MapOptions(
-              initialCenter: LatLng(product.latitude, product.longitude),
-              initialZoom: 14,
-              interactionOptions: const InteractionOptions(flags: 0),
-            ),
-            children: [
-              TileLayer(
-                urlTemplate:
-                    "https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=${dotenv.env["MAPTILER_API_KEY"]}",
-                userAgentPackageName: "com.locally.app",
-              ),
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: LatLng(product.latitude, product.longitude),
-                    width: 40,
-                    height: 40,
-                    child: Icon(
-                      Icons.location_on,
-                      color: colors.primary,
-                      size: 38,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.5),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.place_outlined,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      "Lat: ${product.latitude.toStringAsFixed(5)}, "
-                      "Lng: ${product.longitude.toStringAsFixed(5)}",
-                      style: text.bodySmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:locally/features/wholesale_seller/products/widgets/full_screen_image_viewer.dart';
+import 'package:locally/common/widgets/products/full_screen_image_viewer.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 class ProductImageGallery extends StatefulWidget {

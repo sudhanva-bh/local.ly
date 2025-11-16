@@ -140,7 +140,7 @@ class RetailProduct {
     return {
       'product_id': productId,
       'seller_id': sellerId,
-      'name': name,
+      'product_name': name,
       'description': description,
       'category': category.name,
       'price': price,

@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/providers/wholesale_search_provider.dart';
-import 'package:locally/features/wholesale_seller/orders/widgets/product_filter_sheet.dart';
+// Corrected import path:
+import 'package:locally/features/retail_seller/place_orders/widgets/product_filter_sheet.dart';
 
 // 1. Convert to ConsumerStatefulWidget
 class ProductSearchBar extends ConsumerStatefulWidget {

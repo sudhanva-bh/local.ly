@@ -1,8 +1,8 @@
 // lib/features/wholesale_search/pages/wholesale_search_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:locally/features/wholesale_seller/orders/widgets/product_list.dart';
-import 'package:locally/features/wholesale_seller/products/widgets/product_search_bar.dart';
+import 'package:locally/features/retail_seller/place_orders/widgets/product_list.dart';
+import 'package:locally/features/retail_seller/place_orders/widgets/product_search_bar.dart';
 
 class WholesaleSearchPage extends ConsumerWidget {
   const WholesaleSearchPage({super.key});
@@ -10,7 +10,7 @@ class WholesaleSearchPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Wholesale Products')),
+      appBar: AppBar(title: const Text('Order Wholesale Products')),
       body: const Column(
         children: [
           // 1. Search bar and filter button

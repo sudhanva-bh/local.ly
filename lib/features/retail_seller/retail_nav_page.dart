@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/widgets/bottom_navigator.dart';
+import 'package:locally/features/retail_seller/orders/pages/orders_page.dart';
+import 'package:locally/features/retail_seller/place_orders/pages/wholesale_search_page.dart';
 import 'package:locally/features/retail_seller/profile_page/pages/profile_page.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -25,9 +27,8 @@ class _RetailNavPageState extends ConsumerState<RetailNavPage> {
 
   final List<Widget> _pages = const [
     Center(child: Text('Home')),
-    Center(child: Text('Order')),
-    Center(child: Text('Create')),
-    Center(child: Text('Orders')),
+    RetailOrdersPage(),
+    WholesaleSearchPage(),
     ProfilePage(),
   ];
 
@@ -43,14 +44,9 @@ class _RetailNavPageState extends ConsumerState<RetailNavPage> {
       label: 'Products',
     ),
     BottomNavItem(
-      icon: LucideIcons.circlePlus,
-      activeIcon: LucideIcons.circlePlus,
-      label: 'Create',
-    ),
-    BottomNavItem(
       icon: LucideIcons.shoppingBag,
       activeIcon: LucideIcons.shoppingBag,
-      label: 'Orders',
+      label: 'Place Order',
     ),
     BottomNavItem(
       icon: Icons.person_outline,
