@@ -21,7 +21,7 @@ class RetailOrdersPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.colors.surfaceContainerHighest,
       appBar: AppBar(
-        title: const Text('My Orders'), // Kept 'My Orders' title for Retail
+        title: const Text('My Orders'),
       ),
       body: Column(
         children: [

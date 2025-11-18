@@ -1,6 +1,3 @@
-// -------------------------------------------------------------------
-// --- REUSABLE TEXT FIELD ---
-// -------------------------------------------------------------------
 import 'package:flutter/material.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 
@@ -25,11 +22,12 @@ class CustomTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       obscureText: obscureText,
+      style: TextStyle(color: Colors.black),
       decoration: InputDecoration(
         hintText: label,
-        hintStyle: TextStyle(color: context.colors.onSurfaceVariant),
+        hintStyle: TextStyle(color: Colors.black),
         filled: true,
-        fillColor: context.colors.surfaceDim,
+        fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(
           vertical: 14,
           horizontal: 20,

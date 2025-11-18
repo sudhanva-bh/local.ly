@@ -71,7 +71,8 @@ class WholesaleProductService {
           .single();
 
       return Right(WholesaleProduct.fromMap(result));
-    } catch (e) {
+    } catch (e, stack) {
+      print(stack);
       return Left(e.toString());
     }
   }

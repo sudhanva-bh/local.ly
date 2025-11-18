@@ -191,217 +191,247 @@ class _SetupPageState extends ConsumerState<SetupPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            context.colors.primary,
-            context.colors.background,
-          ],
-          stops: [0.3, 1],
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: context.colors.primary.withAlpha(40),
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          // Use theme-aware text styling
-          title: Text(
-            "LOCAL.LY",
-            style: context.textTheme.titleLarge?.copyWith(
-              color: context.colors.onPrimary,
+    return Stack(
+      children: [
+        // BACKGROUND LIGHT-LEAKS
+        Container(
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              radius: 1.2,
+              colors: [
+                Color.fromARGB(255, 253, 121, 6), // warm orange blob
+                Color.fromARGB(186, 128, 6, 38), // fade out
+              ],
+              center: Alignment(-0.8, -0.8),
             ),
           ),
-          centerTitle: true,
-          // Add flat aesthetic
-          elevation: 0,
-          scrolledUnderElevation: 0,
         ),
-        body: Center(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 800),
-            curve: Curves.easeInOut,
-            child: Container(
-              width: 350, // keep fixed width
-              padding: const EdgeInsets.all(10.0),
-              decoration: BoxDecoration(
-                color: context.colors.surface.withOpacity(0.8),
-                borderRadius: BorderRadius.circular(40),
+        Container(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              radius: 1.4,
+              colors: [
+                const Color.fromARGB(255, 232, 182, 74), // pink-magenta blob
+                Color.fromARGB(182, 202, 16, 16),
+              ],
+              center: Alignment(0.9, -0.4),
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              radius: 1.3,
+              colors: [
+                Color.fromARGB(255, 227, 23, 23), // purple-blue blob
+                Color(0x00000000),
+              ],
+              center: Alignment(-0.4, 0.9),
+            ),
+          ),
+        ),
+
+        // YOUR PAGE CONTENT
+        Scaffold(
+          backgroundColor: context.colors.primary.withAlpha(40),
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            // Use theme-aware text styling
+            title: Text(
+              "LOCAL.LY",
+              style: context.textTheme.titleLarge?.copyWith(
+                color: context.colors.onPrimary,
               ),
-              child: Stepper(
-                type: StepperType.vertical,
-                currentStep: _currentStep,
-                elevation: 0, // Flatter look for the stepper
-                onStepContinue: () {
-                  if (_isStepValid(_currentStep)) {
-                    if (_currentStep < 3) {
-                      setState(() => _currentStep += 1);
+            ),
+            centerTitle: true,
+            // Add flat aesthetic
+            elevation: 0,
+            scrolledUnderElevation: 0,
+          ),
+          body: Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.easeInOut,
+              child: Container(
+                width: 350, // keep fixed width
+                padding: const EdgeInsets.all(10.0),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(40),
+                ),
+                child: Stepper(
+                  type: StepperType.vertical,
+                  currentStep: _currentStep,
+                  elevation: 0, // Flatter look for the stepper
+                  onStepContinue: () {
+                    if (_isStepValid(_currentStep)) {
+                      if (_currentStep < 3) {
+                        setState(() => _currentStep += 1);
+                      } else {
+                        // This is the "Finish" button on the last step
+                        _completeSetup();
+                      }
                     } else {
-                      // This is the "Finish" button on the last step
-                      _completeSetup();
+                      _showError(_currentStep);
                     }
-                  } else {
-                    _showError(_currentStep);
-                  }
-                },
-                onStepCancel: () {
-                  if (_currentStep > 0) setState(() => _currentStep -= 1);
-                },
-                controlsBuilder: (context, details) {
-                  // Consistent styling for control buttons
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: Row(
-                      children: [
-                        ElevatedButton(
-                          onPressed: _isUploading
-                              ? null
-                              : details.onStepContinue,
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
-                            ),
-                            textStyle: context.textTheme.labelLarge,
-                          ),
-                          child: _isUploading
-                              ? SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    // Ensure progress indicator is visible on button
-                                    color: context.colors.onPrimary,
-                                  ),
-                                )
-                              : Text(_currentStep == 3 ? 'Finish' : 'Next'),
-                        ),
-                        const SizedBox(width: 10),
-                        if (_currentStep > 0)
-                          TextButton(
+                  },
+                  onStepCancel: () {
+                    if (_currentStep > 0) setState(() => _currentStep -= 1);
+                  },
+                  controlsBuilder: (context, details) {
+                    // Consistent styling for control buttons
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 16.0),
+                      child: Row(
+                        children: [
+                          ElevatedButton(
                             onPressed: _isUploading
                                 ? null
-                                : details.onStepCancel,
-                            style: TextButton.styleFrom(
+                                : details.onStepContinue,
+                            style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
+                                horizontal: 20,
+                                vertical: 10,
                               ),
                               textStyle: context.textTheme.labelLarge,
                             ),
-                            child: const Text('Back'),
+                            child: _isUploading
+                                ? SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      // Ensure progress indicator is visible on button
+                                      color: context.colors.onPrimary,
+                                    ),
+                                  )
+                                : Text(_currentStep == 3 ? 'Finish' : 'Next'),
                           ),
-                      ],
+                          const SizedBox(width: 10),
+                          if (_currentStep > 0)
+                            TextButton(
+                              onPressed: _isUploading
+                                  ? null
+                                  : details.onStepCancel,
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
+                                textStyle: context.textTheme.labelLarge,
+                              ),
+                              child: const Text('Back'),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                  steps: [
+                    // Step 1: Seller Type
+                    Step(
+                      title: const Text('Seller Type'),
+                      content: SellerTypeWidget(
+                        sellerType: sellerType,
+                        switchSeller: switchSellerType,
+                      ),
+                      isActive: _currentStep >= 0,
                     ),
-                  );
-                },
-                steps: [
-                  // Step 1: Seller Type
-                  Step(
-                    title: const Text('Seller Type'),
-                    content: SellerTypeWidget(
-                      sellerType: sellerType,
-                      switchSeller: switchSellerType,
-                    ),
-                    isActive: _currentStep >= 0,
-                  ),
 
-                  // Step 2: Shop Details
-                  Step(
-                    title: const Text('Shop Details'),
-                    content: PersonalDetails(
-                      formKey: _formKey,
-                      phoneNumberController: phoneNumberController,
-                      shopNameController: shopNameController,
-                      addressController: addressController,
-                      onLocationPicked:
-                          ({
-                            required double latitude,
-                            required double longitude,
-                            required String address,
-                          }) {
-                            setState(() {
-                              this.latitude = latitude;
-                              this.longitude = longitude;
-                              this.address = address;
-                            });
-                          },
+                    // Step 2: Shop Details
+                    Step(
+                      title: const Text('Shop Details'),
+                      content: PersonalDetails(
+                        formKey: _formKey,
+                        phoneNumberController: phoneNumberController,
+                        shopNameController: shopNameController,
+                        addressController: addressController,
+                        onLocationPicked:
+                            ({
+                              required double latitude,
+                              required double longitude,
+                              required String address,
+                            }) {
+                              setState(() {
+                                this.latitude = latitude;
+                                this.longitude = longitude;
+                                this.address = address;
+                              });
+                            },
+                      ),
+                      isActive: _currentStep >= 1,
                     ),
-                    isActive: _currentStep >= 1,
-                  ),
 
-                  // Step 3: Review
-                  Step(
-                    title: const Text('Review'),
-                    content: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      // Added a summary card for better visual grouping
-                      child: Container(
-                        padding: const EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          color: context.colors.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildReviewRow(
-                              context,
-                              "Seller Type",
-                              sellerType?.toWords() ?? '-',
-                            ),
-                            _buildReviewRow(
-                              context,
-                              "Shop Name",
-                              shopNameController.text,
-                            ),
-                            _buildReviewRow(
-                              context,
-                              "Phone",
-                              phoneNumberController.text,
-                            ),
-                            _buildReviewRow(
-                              context,
-                              "Address",
-                              addressController.text,
-                            ),
-                            if (latitude != null && longitude != null)
+                    // Step 3: Review
+                    Step(
+                      title: const Text('Review'),
+                      content: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        // Added a summary card for better visual grouping
+                        child: Container(
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: context.colors.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               _buildReviewRow(
                                 context,
-                                "Location",
-                                "${latitude!.toStringAsFixed(5)}, ${longitude!.toStringAsFixed(5)}",
+                                "Seller Type",
+                                sellerType?.toWords() ?? '-',
                               ),
-                          ],
+                              _buildReviewRow(
+                                context,
+                                "Shop Name",
+                                shopNameController.text,
+                              ),
+                              _buildReviewRow(
+                                context,
+                                "Phone",
+                                phoneNumberController.text,
+                              ),
+                              _buildReviewRow(
+                                context,
+                                "Address",
+                                addressController.text,
+                              ),
+                              if (latitude != null && longitude != null)
+                                _buildReviewRow(
+                                  context,
+                                  "Location",
+                                  "${latitude!.toStringAsFixed(5)}, ${longitude!.toStringAsFixed(5)}",
+                                ),
+                            ],
+                          ),
                         ),
                       ),
+                      isActive: _currentStep >= 2,
                     ),
-                    isActive: _currentStep >= 2,
-                  ),
 
-                  // Step 4: Notifications
-                  Step(
-                    title: const Text('Notifications'),
-                    content: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 8.0,
-                        horizontal: 8.0,
+                    // Step 4: Notifications
+                    Step(
+                      title: const Text('Notifications'),
+                      content: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8.0,
+                          horizontal: 8.0,
+                        ),
+                        child: Text(
+                          'We use notifications to keep you updated about orders and messages. We will ask for permission when you click "Finish".',
+                          textAlign: TextAlign.center,
+                          style: context.textTheme.bodyMedium,
+                        ),
                       ),
-                      child: Text(
-                        'We use notifications to keep you updated about orders and messages. We will ask for permission when you click "Finish".',
-                        textAlign: TextAlign.center,
-                        style: context.textTheme.bodyMedium,
-                      ),
+                      isActive: _currentStep >= 3,
                     ),
-                    isActive: _currentStep >= 3,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 }

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:locally/common/constants/terms_and_conditions.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/theme/app_colors.dart';
 import 'package:locally/common/utilities/custom_snackbar.dart';
 import 'package:locally/features/auth/controllers/auth_controller.dart';
 import 'package:locally/features/auth/widgets/custom_text_field.dart';
 import 'package:locally/common/routes/app_routes.dart';
+import 'package:locally/features/auth/widgets/terms_conditions_popup.dart';
 
 class RegistrationForm extends ConsumerStatefulWidget {
   final VoidCallback toggleForm;
@@ -111,24 +113,47 @@ class _RegistrationFormState extends ConsumerState<RegistrationForm> {
                 child: Text.rich(
                   TextSpan(
                     text: "I agree to ",
-                    style: TextStyle(
-                      color: context.colors.onSurface,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
                       fontSize: 13,
                     ),
                     children: [
-                      TextSpan(
-                        text: "Terms ",
-                        style: TextStyle(
-                          color: AppColors.dark.info,
-                          fontWeight: FontWeight.bold,
+                      WidgetSpan(
+                        child: GestureDetector(
+                          onTap: () {
+                            TermsConditionsPopup.show(
+                              context,
+                              "Terms & Conditions",
+                              localLyTermsText,
+                            );
+                          },
+                          child: Text(
+                            "Terms ",
+                            style: TextStyle(
+                              color: AppColors.dark.info,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                       const TextSpan(text: "and "),
-                      TextSpan(
-                        text: "Privacy Policy.",
-                        style: TextStyle(
-                          color: AppColors.dark.info,
-                          fontWeight: FontWeight.bold,
+                      WidgetSpan(
+                        child: GestureDetector(
+                          onTap: () {
+                            TermsConditionsPopup.show(
+                              context,
+                              "Privacy Policy",
+                              localLyPrivacyPolicyText,
+                            );
+                          },
+                          child: Text(
+                            "Privacy Policy.",
+                            style: TextStyle(
+                              color: AppColors.dark.info,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -146,7 +171,7 @@ class _RegistrationFormState extends ConsumerState<RegistrationForm> {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: context.colors.primary,
-                foregroundColor: context.colors.onPrimary,
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
@@ -179,7 +204,8 @@ class _RegistrationFormState extends ConsumerState<RegistrationForm> {
               Text(
                 "Already have an account? ",
                 style: TextStyle(
-                  color: context.colors.onSurfaceVariant,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
                   fontSize: 14,
                 ),
               ),

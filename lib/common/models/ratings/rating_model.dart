@@ -1,3 +1,4 @@
+// lib/common/models/ratings/rating_model.dart
 import 'dart:convert';
 
 class Rating {
@@ -5,12 +6,14 @@ class Rating {
   final int stars;
   final String title;
   final String? description;
+  final String? reviewerName; // Added this field
 
   Rating({
     required this.ratingId,
     required this.stars,
     required this.title,
     this.description,
+    this.reviewerName, // Added to constructor
   });
 
   Rating copyWith({
@@ -18,12 +21,14 @@ class Rating {
     int? stars,
     String? title,
     String? description,
+    String? reviewerName, // Added to copyWith
   }) {
     return Rating(
       ratingId: ratingId ?? this.ratingId,
       stars: stars ?? this.stars,
       title: title ?? this.title,
       description: description ?? this.description,
+      reviewerName: reviewerName ?? this.reviewerName, // Added here
     );
   }
 
@@ -33,6 +38,7 @@ class Rating {
       'stars': stars,
       'title': title,
       'description': description,
+      'reviewer_name': reviewerName, // Use snake_case for Supabase
     };
   }
 
@@ -49,6 +55,7 @@ class Rating {
       stars: parseStars(map['stars']),
       title: (map['title'] ?? '').toString(),
       description: map['description'] as String?,
+      reviewerName: map['reviewer_name'] as String?, // Read from snake_case
     );
   }
 

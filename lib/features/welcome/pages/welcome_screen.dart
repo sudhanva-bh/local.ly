@@ -196,9 +196,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 ),
               ),
               const Spacer(),
+              // ... (Get Started Button)
               ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushNamed(AppRoutes.authPage);
+                  Navigator.of(context).pushNamed(
+                    AppRoutes.authPage,
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
@@ -213,7 +216,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   elevation: 4,
                 ),
                 child: Text(
-                  "Get Started",
+                  "Get started",
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

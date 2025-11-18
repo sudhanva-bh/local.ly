@@ -111,7 +111,8 @@ class _SignInFormState extends ConsumerState<SignInForm> {
               Text(
                 "Don’t have an account? ",
                 style: TextStyle(
-                  color: context.colors.onSurfaceVariant,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
                   fontSize: 14,
                 ),
               ),

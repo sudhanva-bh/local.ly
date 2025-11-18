@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
+import 'package:locally/common/providers/profile_provider.dart';
 import 'package:locally/features/retail_seller/view_product_for_order/widgets/expanded_product_map_sheet.dart';
 import 'package:locally/features/retail_seller/view_product_for_order/widgets/order_bottom_sheet.dart';
 import 'package:locally/features/retail_seller/view_product_for_order/widgets/product_map.dart';
 import 'package:locally/features/retail_seller/view_product_for_order/widgets/product_ratings_section.dart';
 import 'package:locally/common/widgets/products/image_gallary.dart';
+import 'package:locally/features/view_seller/pages/view_seller_page.dart';
 
 class ViewProduct extends ConsumerWidget {
   final String productId;
@@ -140,11 +142,39 @@ class ViewProduct extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        "Category: ${product.category}",
-                        style: text.bodyMedium!.copyWith(
-                          color: colors.onSurfaceVariant,
-                        ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ViewSellerPage(
+                                sellerId: product.shopId,
+                              ),
+                            ),
+                          );
+                        },
+                        child: ref
+                            .watch(getProfileByIdProvider(product.shopId))
+                            .when(
+                              data: (seller) => Text(
+                                seller.shopName,
+                                style: text.bodyMedium!.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colors.onSurface,
+                                ),
+                              ),
+                              loading: () => const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              error: (_, __) => const Text(
+                                "Unknown Seller",
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ),
                       ),
                       const SizedBox(height: 12),
 

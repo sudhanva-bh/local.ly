@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/models/product_categories/product_categories.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
-import 'package:locally/features/retail_seller/products/providers/product_filter_provider.dart';
-import 'package:locally/features/retail_seller/products/widgets/category_filter_bar.dart';
-import 'package:locally/features/retail_seller/products/widgets/product_card.dart';
-import 'package:locally/features/retail_seller/products/widgets/product_search_bar.dart';
+import 'package:locally/features/wholesale_seller/products/providers/product_filter_provider.dart';
+import 'package:locally/features/wholesale_seller/products/widgets/category_filter_bar.dart';
+import 'package:locally/features/wholesale_seller/products/widgets/product_card.dart';
+import 'package:locally/features/wholesale_seller/products/widgets/product_search_bar.dart';
 
 class ProductsPage extends ConsumerWidget {
   const ProductsPage({super.key});

@@ -8,17 +8,21 @@ class OrderSearchBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(12.0),
       child: TextField(
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           hintText: 'Search by Order ID...',
-          prefixIcon: Icon(Icons.search),
+          prefixIcon: const Icon(Icons.search),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(30.0)),
+            borderRadius: BorderRadius.circular(12),
           ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 0),
         ),
         onChanged: (value) {
           ref.read(orderSearchQueryProvider.notifier).state = value;
+        },
+        onSubmitted: (value) {
+          ref.read(orderSearchQueryProvider.notifier).state = value.trim();
         },
       ),
     );

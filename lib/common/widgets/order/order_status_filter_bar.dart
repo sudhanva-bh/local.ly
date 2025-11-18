@@ -35,7 +35,15 @@ class OrderStatusFilterBar extends ConsumerWidget {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: ChoiceChip(
-              label: Text(status ?? 'All'),
+              label: Text(
+                status ?? "All",
+                style: context.text.labelLarge?.copyWith(
+                  color: isSelected
+                      ? context.colors.onPrimary
+                      : context.colors.onSurface.withOpacity(0.8),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               selected: isSelected,
               onSelected: (bool selected) {
                 ref.read(selectedOrderStatusProvider.notifier).state =

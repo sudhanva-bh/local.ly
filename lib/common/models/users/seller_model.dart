@@ -42,7 +42,7 @@ extension SellerTypeX on SellerType {
 
 class Seller {
   final String uid;
-  final String? fcmToken;
+final String? fcmToken;
 
   final String email;
   final String? phoneNumber;

@@ -21,7 +21,6 @@ void main() async {
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
-  await Supabase.instance.client.auth.signOut();
 
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -39,8 +38,10 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
       debugShowCheckedModeBanner: false,
+      
       routes: AppRoutes.routes,
-      initialRoute: AppRoutes.appGate,
+      initialRoute: AppRoutes.splash,
+      //home: const SpotlightLoadingWidget(),
       builder: (context, child) {
         final mediaQuery = MediaQuery.of(context);
         return MediaQuery(

@@ -6,8 +6,9 @@ import 'package:latlong2/latlong.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
-import 'package:locally/features/retail_seller/products/pages/edit_product.dart';
+import 'package:locally/common/providers/profile_provider.dart';
 import 'package:locally/common/widgets/products/image_gallary.dart';
+import 'package:locally/features/wholesale_seller/products/pages/edit_product.dart';
 
 class ViewProduct extends ConsumerWidget {
   final String productId;
@@ -81,12 +82,37 @@ class ViewProduct extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
+                      // ⭐ FETCH SELLER
+                      ref
+                          .watch(getProfileByIdProvider(product.shopId))
+                          .when(
+                            data: (seller) => Text(
+                              seller.shopName,
+                              style: text.bodyMedium!.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colors.onSurface,
+                              ),
+                            ),
+                            loading: () => const SizedBox(
+                              height: 16,
+                              width: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            error: (_, __) => const Text(
+                              "Unknown Seller",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+
+                      const SizedBox(height: 8),
+
                       Text(
                         "Category: ${product.category}",
                         style: text.bodyMedium!.copyWith(
                           color: colors.onSurfaceVariant,
                         ),
                       ),
+
                       const SizedBox(height: 12),
 
                       Row(

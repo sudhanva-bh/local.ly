@@ -137,21 +137,32 @@ class RetailOrderCard extends ConsumerWidget {
           ],
         ),
         // ✅ TRAILING: Updated to include Chip and Update Button
+        // _orderStatuses = [
+        //   'Pending',
+        //   'Confirmed',
+        //   'Shipped',
+        //   'Delivered',
+        //   'Received',
+        // ];
         trailing: SizedBox(
-          width: 90,
+          width: 120,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Chip(
                 label: Text(order.status),
-                backgroundColor: context.colors.primary,
+                backgroundColor: order.status == "Received"
+                    ? Colors.green
+                    : order.status == "Delivered"
+                    ? context.colors.primary
+                    : context.colors.surfaceDim,
                 labelPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 2,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24), // 👈 Rounded chips
-                  side: BorderSide(color: context.colors.primary),
+                  side: BorderSide(color: Colors.transparent),
                 ),
                 visualDensity: VisualDensity.compact, // Makes chip smaller
               ),
@@ -162,7 +173,10 @@ class RetailOrderCard extends ConsumerWidget {
           // ✅ Fixed navigation
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => OrderDetailPage(orderId: order.orderId, isWholesaleSeller: false,),
+              builder: (context) => OrderDetailPage(
+                orderId: order.orderId,
+                isWholesaleSeller: false,
+              ),
             ),
           );
         },

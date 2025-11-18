@@ -8,7 +8,9 @@ import 'package:locally/common/providers/orders/order_providers.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
 import 'package:locally/common/providers/profile_provider.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
-import 'package:locally/features/retail_seller/products/pages/view_product.dart';
+import 'package:locally/features/view_seller/pages/view_seller_page.dart';
+
+import '../../../features/retail_seller/view_product_for_order/pages/view_product_for_order.dart';
 
 // List of statuses for the tracker
 const List<String> _orderStatuses = [
@@ -198,18 +200,40 @@ class OrderDetailPage extends ConsumerWidget {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                _buildInfoRow(
-                  context,
-                  icon: Icons.store,
-                  title: 'Wholesale Shop',
-                  customValue: _ProfileName(userId: order.wholesaleShopId),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ViewSellerPage(sellerId: order.wholesaleShopId),
+                      ),
+                    );
+                  },
+                  child: _buildInfoRow(
+                    context,
+                    icon: Icons.store,
+                    title: 'Wholesale Shop',
+                    customValue: _ProfileName(userId: order.wholesaleShopId),
+                  ),
                 ),
                 const Divider(height: 24),
-                _buildInfoRow(
-                  context,
-                  icon: Icons.person,
-                  title: 'Retail Seller',
-                  customValue: _ProfileName(userId: order.retailSellerId),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ViewSellerPage(sellerId: order.retailSellerId),
+                      ),
+                    );
+                  },
+                  child: _buildInfoRow(
+                    context,
+                    icon: Icons.person,
+                    title: 'Retail Seller',
+                    customValue: _ProfileName(userId: order.retailSellerId),
+                  ),
                 ),
               ],
             ),
