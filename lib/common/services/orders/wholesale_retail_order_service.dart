@@ -2,7 +2,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:locally/common/models/orders/order_model.dart';
 // 🌟 Added imports for mapping
 import 'package:locally/common/models/product_categories/product_categories.dart';
-import 'package:locally/common/models/products/wholesale/retail_product_model.dart';
+import 'package:locally/common/models/products/retail_product_model.dart';
 import 'package:locally/common/services/products/retail_product_service.dart';
 import 'package:locally/common/services/products/wholesale_product_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

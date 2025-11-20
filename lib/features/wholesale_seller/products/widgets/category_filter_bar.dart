@@ -41,7 +41,7 @@ class CategoryFilterBar extends ConsumerWidget {
                   : null;
             },
             selectedColor: colors.primary,
-            backgroundColor: colors.surfaceVariant.withOpacity(0.5),
+            backgroundColor: colors.surfaceContainerHighest.withOpacity(0.5),
             pressElevation: 0,
             labelPadding: const EdgeInsets.symmetric(
               horizontal: 12,

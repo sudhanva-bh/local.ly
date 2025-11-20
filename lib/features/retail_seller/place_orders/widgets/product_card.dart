@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
-import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
+import 'package:locally/common/models/products/wholesale_product_model.dart';
 import 'package:locally/common/providers/profile_provider.dart';
 import 'package:locally/features/retail_seller/view_product_for_order/pages/view_product_for_order.dart';
 
@@ -94,7 +94,7 @@ class _ProductCardState extends ConsumerState<ProductCard> {
                                 Container(
                                   width: 90,
                                   height: 90,
-                                  color: colors.surfaceVariant,
+                                  color: colors.surfaceContainerHighest,
                                   child: const Icon(
                                     Icons.image_not_supported,
                                     color: Colors.grey,

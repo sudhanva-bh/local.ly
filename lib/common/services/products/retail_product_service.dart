@@ -1,6 +1,5 @@
 import 'package:fpdart/fpdart.dart';
-// Note: Adjust this import path to match your project structure
-import 'package:locally/common/models/products/wholesale/retail_product_model.dart';
+import 'package:locally/common/models/products/retail_product_model.dart';
 import 'package:locally/common/services/products/supabase_image_service.dart';
 import 'package:locally/common/services/supabase_services/supabase_service_search.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

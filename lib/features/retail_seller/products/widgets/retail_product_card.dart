@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/models/product_categories/product_categories.dart';
-import 'package:locally/common/models/products/wholesale/retail_product_model.dart'; // 👈 Updated import
+import 'package:locally/common/models/products/retail_product_model.dart'; // 👈 Updated import
 import 'package:locally/features/retail_seller/products/pages/view_retail_product.dart'; // 👈 Updated import
 
 class RetailProductCard extends StatelessWidget {
@@ -59,7 +59,7 @@ class RetailProductCard extends StatelessWidget {
                     return Container(
                       width: 90,
                       height: 90,
-                      color: context.colors.surfaceVariant,
+                      color: context.colors.surfaceContainerHighest,
                       child: Icon(
                         Icons.image_not_supported,
                         size: 40,

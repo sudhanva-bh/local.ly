@@ -174,7 +174,7 @@ class ViewRetailProduct extends ConsumerWidget {
                             const SizedBox(width: 4),
                             Text(
                               "${product.averageRating.toStringAsFixed(1)} "
-                              "(${product.ratingCount} ratings)",
+                              "(${product.ratings.length} ratings)",
                               style: text.bodyMedium,
                             ),
                           ],

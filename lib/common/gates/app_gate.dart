@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:locally/common/models/users/seller_model.dart';
+import 'package:locally/common/models/users/account_type.dart';
 import 'package:locally/common/providers/auth_providers.dart';
-import 'package:locally/common/providers/profile_provider.dart';
+import 'package:locally/features/consumer/consumer_nav_page.dart';
 import 'package:locally/features/retail_seller/retail_nav_page.dart';
 import 'package:locally/features/setup/setup_page.dart';
 import 'package:locally/features/welcome/pages/welcome_screen.dart';
@@ -13,17 +13,37 @@ class AppGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. Watch the authentication state first
     final authState = ref.watch(authStateProvider);
 
     return authState.when(
       data: (user) {
         if (user == null) {
-          // 🔒 User is NOT signed in
+          // No session → show welcome/auth flow
           return const WelcomeScreen();
-        } else {
-          // ✅ User IS signed in, now check their profile
-          return const _ProfileGate();
+        }
+
+        // User logged in → read metadata
+        final metadata = user.userMetadata ?? {};
+
+        final onboarded = metadata["onboarded"] == true;
+        final accountTypeRaw = metadata["accountType"] as String?;
+
+        // If user hasn't onboarded → setup
+        if (!onboarded) {
+          return const SetupPage();
+        }
+
+        // User onboarded → route based on account type
+        final accountType = AccountTypeX.fromValue(accountTypeRaw);
+
+        switch (accountType) {
+          case AccountType.wholesaleSeller:
+            print("Wholesale");
+            return const WholesaleNavPage();
+          case AccountType.retailSeller:
+            return const RetailNavPage();
+          case AccountType.consumer:
+            return const ConsumerNavPage();
         }
       },
       loading: () => const Scaffold(
@@ -31,41 +51,6 @@ class AppGate extends ConsumerWidget {
       ),
       error: (error, _) => Scaffold(
         body: Center(child: Text('Auth Error: $error')),
-      ),
-    );
-  }
-}
-
-/// This internal widget is only rendered if the user is authenticated.
-/// It handles the profile-checking logic.
-class _ProfileGate extends ConsumerWidget {
-  const _ProfileGate();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // 2. Watch the user's profile
-    final profileState = ref.watch(currentUserProfileProvider);
-
-    return profileState.when(
-      data: (seller) {
-        if (seller == null) {
-          // 👶 User is signed in but has NO profile
-          return const SetupPage();
-        } else {
-          // 🏠 User has a profile, route them by type
-          switch (seller.sellerType) {
-            case SellerType.wholesaleSeller:
-              return const WholesaleNavPage();
-            case SellerType.retailSeller:
-              return const RetailNavPage();
-          }
-        }
-      },
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, _) => Scaffold(
-        body: Center(child: Text('Error loading profile: $error')),
       ),
     );
   }

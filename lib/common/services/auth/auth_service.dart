@@ -1,4 +1,5 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:locally/common/models/users/account_type.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
@@ -54,7 +55,7 @@ class AuthService {
 
   /// SIGN OUT
   Future<Either<String, void>> signOut() async {
-  try {
+    try {
       await _supabase.auth.signOut();
       return Right(null);
     } on AuthException catch (e) {
@@ -73,6 +74,41 @@ class AuthService {
       } else {
         return Left('No user logged in');
       }
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  Future<Either<String, User>> updateUserMetadata({
+    AccountType? accountType,
+    bool? onboarded,
+  }) async {
+    try {
+      // Build metadata map only with non-null fields
+      final Map<String, dynamic> updatedData = {};
+
+      if (accountType != null) {
+        updatedData["accountType"] = accountType.name;
+      }
+      if (onboarded != null) {
+        updatedData["onboarded"] = onboarded;
+      }
+
+      if (updatedData.isEmpty) {
+        return Left("No metadata fields provided to update");
+      }
+
+      final res = await _supabase.auth.updateUser(
+        UserAttributes(data: updatedData),
+      );
+
+      if (res.user != null) {
+        return Right(res.user!);
+      } else {
+        return Left("Failed to update metadata");
+      }
+    } on AuthException catch (e) {
+      return Left(e.message);
     } catch (e) {
       return Left(e.toString());
     }

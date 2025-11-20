@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
+import 'package:locally/common/models/products/wholesale_product_model.dart';
 import 'package:locally/common/models/search/search_filters.dart';
 import 'package:locally/common/models/users/seller_model.dart'; // Import Seller
 import 'package:locally/common/providers/profile_provider.dart'; // Import profile provider

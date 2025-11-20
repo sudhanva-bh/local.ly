@@ -2,47 +2,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 import 'package:locally/common/models/ratings/rating_model.dart';
-
-enum SellerType {
-  wholesaleSeller,
-  retailSeller,
-}
-
-extension SellerTypeX on SellerType {
-  String toValue() {
-    switch (this) {
-      case SellerType.wholesaleSeller:
-        return 'wholesaleSeller';
-      case SellerType.retailSeller:
-        return 'retailSeller';
-    }
-  }
-
-  static SellerType fromValue(String? value) {
-    switch (value) {
-      case 'wholesaleSeller':
-        return SellerType.wholesaleSeller;
-      case 'retailSeller':
-        return SellerType.retailSeller;
-      default:
-        // default to retail if unknown
-        return SellerType.retailSeller;
-    }
-  }
-
-  String toWords() {
-    switch (this) {
-      case SellerType.wholesaleSeller:
-        return 'Wholesale Seller';
-      case SellerType.retailSeller:
-        return 'Retail Seller';
-    }
-  }
-}
+import 'package:locally/common/models/users/account_type.dart';
 
 class Seller {
   final String uid;
-final String? fcmToken;
+  final String? fcmToken;
 
   final String email;
   final String? phoneNumber;
@@ -50,7 +14,7 @@ final String? fcmToken;
 
   final String shopName;
   final List<String>? productIds;
-  final SellerType sellerType;
+  final AccountType accountType;
 
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -69,7 +33,7 @@ final String? fcmToken;
     this.profileImageUrl,
     required this.shopName,
     this.productIds,
-    required this.sellerType,
+    required this.accountType,
     required this.createdAt,
     this.updatedAt,
     this.latitude,
@@ -86,7 +50,7 @@ final String? fcmToken;
     String? profileImageUrl,
     String? shopName,
     List<String>? productIds,
-    SellerType? sellerType,
+    AccountType? accountType,
     DateTime? createdAt,
     DateTime? updatedAt,
     double? latitude,
@@ -102,7 +66,7 @@ final String? fcmToken;
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       shopName: shopName ?? this.shopName,
       productIds: productIds ?? this.productIds,
-      sellerType: sellerType ?? this.sellerType,
+      accountType: accountType ?? this.accountType,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       latitude: latitude ?? this.latitude,
@@ -122,7 +86,7 @@ final String? fcmToken;
       'profile_image_url': profileImageUrl,
       'shop_name': shopName,
       'product_ids': productIds,
-      'seller_type': sellerType.toValue(),
+      'seller_type': accountType.toValue(),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       'latitude': latitude,
@@ -200,8 +164,8 @@ final String? fcmToken;
       profileImageUrl: map['profile_image_url'] ?? map['profileImageUrl'],
       shopName: (map['shop_name'] ?? map['shopName'] ?? '') as String,
       productIds: productIdsParsed,
-      sellerType: SellerTypeX.fromValue(
-        (map['seller_type'] ?? map['sellerType'])?.toString(),
+      accountType: AccountTypeX.fromValue(
+        (map['seller_type'] ?? map['accountType'])?.toString(),
       ),
       createdAt: created,
       updatedAt: updated,

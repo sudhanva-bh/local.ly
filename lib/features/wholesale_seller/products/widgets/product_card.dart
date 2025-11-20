@@ -1,8 +1,8 @@
 // lib/features/products/widgets/product_card.dart
 import 'package:flutter/material.dart';
 import 'package:locally/common/extensions/content_extensions.dart'; // for context.colors
-import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
-import 'package:locally/features/retail_seller/view_product_for_order/pages/view_product_for_order.dart';
+import 'package:locally/common/models/products/wholesale_product_model.dart';
+import 'package:locally/features/wholesale_seller/products/pages/view_product.dart';
 
 class ProductCard extends StatelessWidget {
   final WholesaleProduct product;
@@ -59,8 +59,9 @@ class ProductCard extends StatelessWidget {
                     return Container(
                       width: 90,
                       height: 90,
-                      color:
-                          context.colors.surfaceVariant, // optional background
+                      color: context
+                          .colors
+                          .surfaceContainerHighest, // optional background
                       child: Icon(
                         Icons.image_not_supported,
                         size: 40,

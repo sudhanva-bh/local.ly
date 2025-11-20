@@ -17,8 +17,8 @@
 //           // 👶 No profile → show setup page
 //           return const SetupPage();
 //         } else {
-//           // 🏠 Profile exists → go to SellerTypeGate
-//           return const SellerTypeGate();
+//           // 🏠 Profile exists → go to AccountTypeGate
+//           return const AccountTypeGate();
 //         }
 //       },
 //       loading: () => const Scaffold(

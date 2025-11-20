@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:locally/common/widgets/location_picker.dart';
-import 'package:locally/common/extensions/content_extensions.dart'; // assuming this gives context.colors
 
 class PersonalDetails extends StatefulWidget {
   const PersonalDetails({
@@ -34,6 +33,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
   double? _longitude;
   String? _address;
 
+  // --- UPDATED GLASS STYLE DECORATION ---
   InputDecoration _inputDecoration({
     String? label,
     String? hint,
@@ -47,32 +47,51 @@ class _PersonalDetailsState extends State<PersonalDetails> {
       floatingLabelBehavior: floatingLabel
           ? FloatingLabelBehavior.auto
           : FloatingLabelBehavior.never,
-      prefixIcon: Icon(icon, color: Colors.grey[700]),
+      // White icons to stand out on glass
+      prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.7)),
       filled: true,
-      fillColor: context.colors.surface, // ✅ Applied theme surface color
+      // Semi-transparent white fill
+      fillColor: Colors.white.withOpacity(0.1),
       isDense: dense,
       contentPadding: dense
           ? const EdgeInsets.symmetric(vertical: 10, horizontal: 16)
           : const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+
+      // --- BORDERS (Subtle white strokes) ---
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(23),
-        borderSide: BorderSide.none,
+        borderRadius: BorderRadius.circular(16), // Matching parent radius style
+        borderSide: BorderSide(color: Colors.white.withOpacity(0.2), width: 1),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(23),
-        borderSide: BorderSide.none,
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.white.withOpacity(0.2), width: 1),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(23),
-        borderSide: BorderSide.none,
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(
+          color: Colors.white.withOpacity(0.5),
+          width: 1.5,
+        ),
       ),
-      hintStyle: TextStyle(color: Colors.grey[600]),
-      labelStyle: TextStyle(color: Colors.grey[600]),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+      ),
+
+      // Light text for readability on dark/gradient backgrounds
+      hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
+      labelStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    // Define a white text style for the input text itself
+    const TextStyle whiteTextStyle = TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.w500,
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4),
       child: Form(
@@ -80,8 +99,14 @@ class _PersonalDetailsState extends State<PersonalDetails> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 📞 Phone number (static hint, no floating label)
+            // 📞 Phone number
             IntlPhoneField(
+              style: whiteTextStyle, // Input text color
+              dropdownTextStyle: whiteTextStyle, // Country code color
+              dropdownIcon: Icon(
+                Icons.arrow_drop_down,
+                color: Colors.white.withOpacity(0.7),
+              ),
               decoration: _inputDecoration(
                 hint: 'Phone Number',
                 icon: Icons.phone,
@@ -104,10 +129,11 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                 return null;
               },
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 12),
 
             // 🏪 Shop name
             TextFormField(
+              style: whiteTextStyle, // Input text color
               textCapitalization: TextCapitalization.words,
               controller: widget.shopNameController,
               decoration: _inputDecoration(
@@ -123,7 +149,10 @@ class _PersonalDetailsState extends State<PersonalDetails> {
               },
             ),
             const SizedBox(height: 16),
+
             // 📍 Location picker
+            // Note: Ensure LocationPickerField also accepts/uses these styles
+            // or wraps its internal button in similar glass styles.
             LocationPickerField(
               latitude: _latitude,
               longitude: _longitude,
@@ -151,9 +180,11 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                   },
             ),
 
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
+
             // 🏡 Address
             TextFormField(
+              style: whiteTextStyle, // Input text color
               textCapitalization: TextCapitalization.sentences,
               controller: widget.addressController,
               decoration:
@@ -161,8 +192,6 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                     label: 'Address',
                     icon: Icons.home,
                   ).copyWith(
-                    fillColor:
-                        context.colors.surface, // ✅ Ensure consistent fill
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 18,
                       horizontal: 20,

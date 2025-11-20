@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
+import 'package:locally/common/models/users/account_type.dart';
 import 'package:locally/common/models/users/seller_model.dart';
 import 'package:locally/common/providers/profile_provider.dart';
 import 'package:locally/features/retail_seller/profile_page/widgets/editable_info_tile.dart';
@@ -81,12 +82,12 @@ class ViewSellerBody extends ConsumerWidget {
                   seller.shopName,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Text(
-                seller.sellerType.toWords(),
+                seller.accountType.toWords(),
                 style: TextStyle(color: colors.onSurface.withOpacity(0.6)),
               ),
               const SizedBox(height: 20),
@@ -192,7 +193,11 @@ class ViewSellerBody extends ConsumerWidget {
                     children: [
                       Padding(
                         padding: const EdgeInsets.only(
-                            left: 16.0, right: 8, top: 8, bottom: 8),
+                          left: 16.0,
+                          right: 8,
+                          top: 8,
+                          bottom: 8,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -202,8 +207,10 @@ class ViewSellerBody extends ConsumerWidget {
                             ),
                             // --- NEW FEATURE ---
                             TextButton.icon(
-                              icon: const Icon(Icons.rate_review_outlined,
-                                  size: 18),
+                              icon: const Icon(
+                                Icons.rate_review_outlined,
+                                size: 18,
+                              ),
                               label: const Text('Add Review'),
                               onPressed: () =>
                                   _showAddReviewSheet(context, ref, seller),
@@ -228,7 +235,8 @@ class ViewSellerBody extends ConsumerWidget {
                                   '${r.stars}/5 - ${r.title}\n${r.description ?? ''}',
                                 ),
                                 // Use three lines if there is a description
-                                isThreeLine: r.description != null &&
+                                isThreeLine:
+                                    r.description != null &&
                                     r.description!.isNotEmpty,
                               ),
                             )
@@ -236,7 +244,8 @@ class ViewSellerBody extends ConsumerWidget {
                         const Padding(
                           padding: EdgeInsets.all(16.0),
                           child: Center(
-                              child: Text('No ratings yet. Be the first!')),
+                            child: Text('No ratings yet. Be the first!'),
+                          ),
                         ),
                     ],
                   ),
@@ -252,7 +261,10 @@ class ViewSellerBody extends ConsumerWidget {
 
   /// Helper to show the "Add Review" bottom sheet
   Future<void> _showAddReviewSheet(
-      BuildContext context, WidgetRef ref, Seller seller) async {
+    BuildContext context,
+    WidgetRef ref,
+    Seller seller,
+  ) async {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,

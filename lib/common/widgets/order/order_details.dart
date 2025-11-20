@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:locally/common/models/orders/order_model.dart';
-import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
+import 'package:locally/common/models/products/wholesale_product_model.dart';
 import 'package:locally/common/providers/orders/order_providers.dart';
 // New imports for providers
 import 'package:locally/common/providers/product_service_providers.dart';

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/models/orders/order_model.dart';
-import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
+import 'package:locally/common/models/products/wholesale_product_model.dart';
 import 'package:locally/common/providers/orders/order_providers.dart';
 import 'package:locally/common/providers/profile_provider.dart';
 import 'package:uuid/uuid.dart';

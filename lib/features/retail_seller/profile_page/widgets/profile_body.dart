@@ -4,11 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
-import 'package:locally/common/gates/app_gate.dart';
+import 'package:locally/common/models/users/account_type.dart';
 import 'package:locally/common/models/users/seller_model.dart';
 import 'package:locally/features/auth/controllers/auth_controller.dart';
 import 'package:locally/common/widgets/location_picker.dart';
 import 'package:locally/features/retail_seller/profile_page/controllers/profile_controller.dart';
+import 'package:locally/features/welcome/pages/welcome_screen.dart';
 import 'editable_info_tile.dart';
 import 'shop_location_map.dart';
 
@@ -116,7 +117,7 @@ class ProfileBody extends ConsumerWidget {
                 ],
               ),
               Text(
-                seller.sellerType.toWords(),
+                seller.accountType.toWords(),
                 style: TextStyle(color: colors.onSurface.withOpacity(0.6)),
               ),
               const SizedBox(height: 20),
@@ -469,7 +470,7 @@ class ProfileBody extends ConsumerWidget {
           );
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => AppGate()),
+            MaterialPageRoute(builder: (context) => WelcomeScreen()),
           );
         }
       }

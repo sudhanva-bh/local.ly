@@ -4,7 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
-import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
+import 'package:locally/common/models/products/wholesale_product_model.dart';
 import 'package:locally/common/providers/profile_provider.dart';
 
 class ExpandedProductMapSheet extends ConsumerWidget {

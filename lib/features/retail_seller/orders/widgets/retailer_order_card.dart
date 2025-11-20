@@ -1,6 +1,6 @@
 // --- Make sure to add these imports ---
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
+import 'package:locally/common/models/products/wholesale_product_model.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
 // Import OrderDetailPage (path from example)
 

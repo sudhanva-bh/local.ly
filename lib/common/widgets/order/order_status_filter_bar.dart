@@ -50,7 +50,7 @@ class OrderStatusFilterBar extends ConsumerWidget {
                     (selected) ? status : null;
               },
               selectedColor: context.colors.primary,
-              backgroundColor: context.colors.surfaceVariant.withOpacity(0.5),
+              backgroundColor: context.colors.surfaceContainerHighest.withOpacity(0.5),
               pressElevation: 0,
               labelPadding: const EdgeInsets.symmetric(
                 horizontal: 12,

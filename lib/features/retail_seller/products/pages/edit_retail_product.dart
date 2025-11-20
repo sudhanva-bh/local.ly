@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/models/product_categories/product_categories.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
-import 'package:locally/common/models/products/wholesale/retail_product_model.dart'; // 👈 Updated import
+import 'package:locally/common/models/products/retail_product_model.dart'; // 👈 Updated import
 import 'package:locally/common/services/file_picker/file_picker_service.dart';
 import 'package:locally/features/wholesale_seller/create_product/widgets/image_picker_grid.dart';
 // You'll need a RetailNavPage or similar
@@ -31,7 +31,7 @@ class _EditRetailProductState extends ConsumerState<EditRetailProduct> {
 
   final FilePickerService _filePicker = FilePickerService();
 
-  List<File> _newImages = [];
+  final List<File> _newImages = [];
   List<String> _existingImages = [];
   bool _isSaving = false;
   bool _initialized = false;
@@ -191,7 +191,7 @@ class _EditRetailProductState extends ConsumerState<EditRetailProduct> {
                         ),
                         const SizedBox(height: 6),
                         DropdownButtonFormField<ProductCategories>(
-                          value: _selectedCategory,
+                          initialValue: _selectedCategory,
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: colors.surface,

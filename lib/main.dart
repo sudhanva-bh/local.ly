@@ -38,10 +38,10 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
       debugShowCheckedModeBanner: false,
-      
+
       routes: AppRoutes.routes,
       initialRoute: AppRoutes.splash,
-      //home: const SpotlightLoadingWidget(),
+      // home: const SetupPage(),
       builder: (context, child) {
         final mediaQuery = MediaQuery.of(context);
         return MediaQuery(

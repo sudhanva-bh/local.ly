@@ -17,7 +17,7 @@ class GifSplashState extends State<GifSplash> {
     Timer(const Duration(seconds: 0), () {
       Navigator.pushReplacementNamed(
         context,
-        AppRoutes.appGate, // <-- CHANGED (Was WelcomeScreen)
+        AppRoutes.appGate,
       );
     });
   }

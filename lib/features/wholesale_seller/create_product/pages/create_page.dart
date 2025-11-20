@@ -10,7 +10,7 @@ import 'package:locally/features/wholesale_seller/wholesale_nav_page.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:locally/common/extensions/content_extensions.dart';
-import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
+import 'package:locally/common/models/products/wholesale_product_model.dart';
 import 'package:locally/common/providers/auth_providers.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
 import 'package:locally/features/wholesale_seller/create_product/widgets/custom_text_field.dart';
@@ -194,7 +194,7 @@ class _CreatePageUIState extends ConsumerState<CreatePageUI> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: DropdownButtonFormField<ProductCategories>(
-                        value: _selectedCategory,
+                        initialValue: _selectedCategory,
                         decoration: InputDecoration(
                           prefixIcon: Icon(
                             Icons.category,

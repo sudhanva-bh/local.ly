@@ -6,14 +6,14 @@
 // import 'package:locally/features/retail_seller/home/presentation/pages/retail_home_page.dart';
 // import 'package:locally/features/wholesale_seller/home/presentation/pages/wholesale_nav_page.dart';
 
-// class SellerTypeGate extends ConsumerStatefulWidget {
-//   const SellerTypeGate({super.key});
+// class AccountTypeGate extends ConsumerStatefulWidget {
+//   const AccountTypeGate({super.key});
 
 //   @override
-//   ConsumerState<SellerTypeGate> createState() => _SellerTypeGateState();
+//   ConsumerState<AccountTypeGate> createState() => _AccountTypeGateState();
 // }
 
-// class _SellerTypeGateState extends ConsumerState<SellerTypeGate> {
+// class _AccountTypeGateState extends ConsumerState<AccountTypeGate> {
 //   Timer? _retryTimer;
 
 //   void _scheduleRetry() {
@@ -47,10 +47,10 @@
 //         }
 
 //         // Logged in and has a seller type
-//         switch (seller.sellerType) {
-//           case SellerType.wholesaleSeller:
+//         switch (seller.accountType) {
+//           case AccountType.wholesaleSeller:
 //             return const WholesaleNavPage();
-//           case SellerType.retailSeller:
+//           case AccountType.retailSeller:
 //             return const RetailHomePage();
 //         }
 //       },

@@ -1,7 +1,7 @@
 // lib/features/home/presentation/pages/products_list_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
+import 'package:locally/common/models/products/wholesale_product_model.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
 import 'package:locally/common/services/products/wholesale_product_service.dart';
 

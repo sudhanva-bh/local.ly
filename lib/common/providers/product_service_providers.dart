@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:locally/common/models/products/wholesale/retail_product_model.dart';
-import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
+import 'package:locally/common/models/products/retail_product_model.dart';
+import 'package:locally/common/models/products/wholesale_product_model.dart';
 import 'package:locally/common/providers/auth_providers.dart';
 import 'package:locally/common/services/products/retail_product_service.dart';
 import 'package:locally/common/services/products/supabase_image_service.dart';

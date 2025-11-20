@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/gates/app_gate.dart';
+import 'package:locally/common/models/users/account_type.dart';
 import 'package:locally/common/models/users/seller_model.dart';
 import 'package:locally/features/auth/controllers/auth_controller.dart';
 import 'package:locally/common/widgets/location_picker.dart';
@@ -116,7 +117,7 @@ class ProfileBody extends ConsumerWidget {
                 ],
               ),
               Text(
-                seller.sellerType.toWords(),
+                seller.accountType.toWords(),
                 style: TextStyle(color: colors.onSurface.withOpacity(0.6)),
               ),
               const SizedBox(height: 20),

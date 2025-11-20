@@ -1,5 +1,5 @@
 // lib/common/services/wholesale_search_service.dart
-import 'package:locally/common/models/products/wholesale/wholesale_product_model.dart';
+import 'package:locally/common/models/products/wholesale_product_model.dart';
 import 'package:locally/common/models/search/search_filters.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
