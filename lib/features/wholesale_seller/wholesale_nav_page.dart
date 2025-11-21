@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:locally/common/widgets/bottom_navigator.dart';
-import 'package:locally/features/chat/pages/chat_list_page.dart';
+import 'package:locally/features/chat/pages/retailer_chat_list_page.dart';
 import 'package:locally/features/wholesale_seller/create_product/pages/create_page.dart';
 import 'package:locally/features/wholesale_seller/home/presentation/pages/home_page.dart';
 import 'package:locally/features/wholesale_seller/orders/pages/orders_page.dart';
@@ -24,16 +24,16 @@ class WholesaleNavPage extends ConsumerStatefulWidget {
 }
 
 class _WholesaleNavPageState extends ConsumerState<WholesaleNavPage> {
-  
   @override
   void initState() {
     super.initState();
     // 2. INITIALIZE STATE
-    // We use addPostFrameCallback to ensure we don't modify the provider 
+    // We use addPostFrameCallback to ensure we don't modify the provider
     // in the middle of a build cycle.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.initialIndex != 0) {
-        ref.read(wholesaleNavIndexProvider.notifier).state = widget.initialIndex;
+        ref.read(wholesaleNavIndexProvider.notifier).state =
+            widget.initialIndex;
       }
     });
   }
@@ -48,25 +48,30 @@ class _WholesaleNavPageState extends ConsumerState<WholesaleNavPage> {
 
   final List<BottomNavItem> _navItems = [
     BottomNavItem(
-        icon: Icons.dashboard_outlined,
-        activeIcon: Icons.dashboard,
-        label: 'Dashboard'),
+      icon: Icons.dashboard_outlined,
+      activeIcon: Icons.dashboard,
+      label: 'Dashboard',
+    ),
     BottomNavItem(
-        icon: Icons.inventory_2_outlined,
-        activeIcon: Icons.inventory_2,
-        label: 'Products'),
+      icon: Icons.inventory_2_outlined,
+      activeIcon: Icons.inventory_2,
+      label: 'Products',
+    ),
     BottomNavItem(
-        icon: LucideIcons.circlePlus,
-        activeIcon: LucideIcons.circlePlus,
-        label: 'Create'),
+      icon: LucideIcons.circlePlus,
+      activeIcon: LucideIcons.circlePlus,
+      label: 'Create',
+    ),
     BottomNavItem(
-        icon: LucideIcons.shoppingBag,
-        activeIcon: LucideIcons.shoppingBag,
-        label: 'Orders'),
+      icon: LucideIcons.shoppingBag,
+      activeIcon: LucideIcons.shoppingBag,
+      label: 'Orders',
+    ),
     BottomNavItem(
-        icon: Icons.person_outline,
-        activeIcon: Icons.person,
-        label: 'Profile'),
+      icon: Icons.person_outline,
+      activeIcon: Icons.person,
+      label: 'Profile',
+    ),
   ];
 
   void _onNavTap(int index) {
@@ -84,7 +89,10 @@ class _WholesaleNavPageState extends ConsumerState<WholesaleNavPage> {
       extendBody: true,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatListPage()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SellerChatListPage()),
+          );
         },
         child: const Icon(Icons.chat),
       ),

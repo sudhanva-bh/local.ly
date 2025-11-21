@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:locally/common/models/orders/consumer_order_model.dart';
 import 'package:locally/common/providers/auth_providers.dart';
 import 'package:locally/common/services/orders/consumer_order_service.dart';
 import 'package:locally/features/consumer/cart/controllers/cart_controller.dart';
@@ -9,20 +8,6 @@ import 'package:locally/features/consumer/cart/controllers/cart_controller.dart'
 final orderServiceProvider = Provider<OrderService>((ref) {
   final client = ref.watch(supabaseClientProvider);
   return OrderService(client);
-});
-
-// 2. Fetch My Orders Provider
-final myOrdersProvider = FutureProvider.autoDispose<List<OrderModel>>((ref) async {
-  final user = ref.watch(authStateProvider).value;
-  if (user == null) return [];
-
-  final service = ref.watch(orderServiceProvider);
-  final result = await service.getConsumerOrders(user.id);
-  
-  return result.fold(
-    (l) => throw Exception(l), 
-    (r) => r
-  );
 });
 
 // 3. Order Controller (for placing orders)
@@ -58,7 +43,6 @@ class OrderController extends StateNotifier<AsyncValue<void>> {
     final service = ref.read(orderServiceProvider);
     
     final result = await service.placeOrder(
-      consumerId: user.id,
       cartItems: cartState.value!,
       deliveryAddress: address,
       deliveryLat: lat,

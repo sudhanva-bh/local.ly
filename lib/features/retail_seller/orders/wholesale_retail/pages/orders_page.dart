@@ -7,7 +7,7 @@ import 'package:locally/common/widgets/order/order_search_bar.dart';
 import 'package:locally/common/widgets/order/order_status_filter_bar.dart';
 // ✅ 1. Import the provider for the update action
 import 'package:locally/common/providers/orders/order_actions_provider.dart';
-import 'package:locally/features/retail_seller/orders/widgets/retailer_order_card.dart';
+import 'package:locally/features/retail_seller/orders/wholesale_retail/widgets/retailer_order_card.dart';
 
 class RetailOrdersPage extends ConsumerWidget {
   const RetailOrdersPage({super.key});

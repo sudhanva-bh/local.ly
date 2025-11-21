@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:locally/common/widgets/bottom_navigator.dart';
-import 'package:locally/features/chat/pages/chat_list_page.dart';
+import 'package:locally/features/chat/pages/consumer_chat_list_page.dart';
 import 'package:locally/features/consumer/cart/cart_page.dart';
-import 'package:locally/features/consumer/consumer_orders/pages/consumer_order_page.dart';
 import 'package:locally/features/consumer/order/pages/consumer_order_screen.dart';
 import 'package:locally/features/consumer/profile_page/pages/consumer_profile_page.dart';
+import 'package:locally/features/consumer/view_orders/consumer_orders_page.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // --- Provider ---
@@ -87,7 +87,7 @@ class _ConsumerNavPageState extends ConsumerState<ConsumerNavPage> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const ChatListPage()),
+            MaterialPageRoute(builder: (_) => const ConsumerChatListPage()),
           );
         },
         child: const Icon(Icons.chat_bubble_outline),

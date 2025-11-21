@@ -5,10 +5,10 @@ import 'package:locally/common/models/chat/chat_models.dart';
 import 'package:locally/common/providers/profile_provider.dart';
 import 'package:locally/common/services/chat/chat_service.dart';
 // Import the tile widget below
-import 'package:locally/features/chat/widgets/chat_list_tile.dart'; 
+import 'package:locally/features/chat/widgets/chat_list_tile.dart';
 
-class ChatListPage extends ConsumerWidget {
-  const ChatListPage({super.key});
+class SellerChatListPage extends ConsumerWidget {
+  const SellerChatListPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

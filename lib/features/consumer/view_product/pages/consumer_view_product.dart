@@ -12,6 +12,7 @@ import 'package:locally/features/consumer/cart/controllers/cart_controller.dart'
 import 'package:locally/features/retail_seller/view_product_for_order/widgets/product_map.dart';
 import 'package:locally/features/retail_seller/view_product_for_order/widgets/product_ratings_section.dart';
 import 'package:locally/common/widgets/products/image_gallary.dart';
+import 'package:locally/features/view_seller/pages/view_seller_page.dart';
 
 class ConsumerViewProduct extends ConsumerStatefulWidget {
   final String productId;
@@ -287,54 +288,67 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
                       const SizedBox(height: 16),
 
                       // Seller Info
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: colors.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.storefront, color: colors.primary),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text("Sold by", style: text.labelSmall),
-                                  // 🌟 UPDATED SELLER FETCH LOGIC 🌟
-                                  Consumer(
-                                    builder: (context, ref, _) {
-                                      return ref
-                                          .watch(
-                                            getProfileByIdProvider(
-                                              product.sellerId,
-                                            ),
-                                          )
-                                          .when(
-                                            data: (seller) => Text(
-                                              seller
-                                                  .shopName, // Assuming Shop Name for sellers
-                                              style: text.bodyMedium!.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            loading: () => const SizedBox(
-                                              height: 10,
-                                              width: 50,
-                                              child: LinearProgressIndicator(),
-                                            ),
-                                            error: (_, __) =>
-                                                const Text("Unknown Seller"),
-                                          );
-                                    },
-                                  ),
-                                ],
-                              ),
+                      InkWell(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ViewSellerPage(
+                              sellerId: product.sellerId,
                             ),
-                          ],
+                          ),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: colors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.storefront, color: colors.primary),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("Sold by", style: text.labelSmall),
+                                    // 🌟 UPDATED SELLER FETCH LOGIC 🌟
+                                    Consumer(
+                                      builder: (context, ref, _) {
+                                        return ref
+                                            .watch(
+                                              getProfileByIdProvider(
+                                                product.sellerId,
+                                              ),
+                                            )
+                                            .when(
+                                              data: (seller) => Text(
+                                                seller
+                                                    .shopName, // Assuming Shop Name for sellers
+                                                style: text.bodyMedium!
+                                                    .copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              loading: () => const SizedBox(
+                                                height: 10,
+                                                width: 50,
+                                                child:
+                                                    LinearProgressIndicator(),
+                                              ),
+                                              error: (_, __) =>
+                                                  const Text("Unknown Seller"),
+                                            );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),

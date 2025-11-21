@@ -14,7 +14,7 @@ class GifSplashState extends State<GifSplash> {
   void initState() {
     super.initState();
     // ... in your GifSplashState initState method
-    Timer(const Duration(seconds: 0), () {
+    Timer(const Duration(seconds: 6), () {
       Navigator.pushReplacementNamed(
         context,
         AppRoutes.appGate,
@@ -37,7 +37,6 @@ class GifSplashState extends State<GifSplash> {
     );
   }
 }
-
 
 // import 'package:flutter/material.dart';
 // import 'package:video_player/video_player.dart';

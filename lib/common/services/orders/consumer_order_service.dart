@@ -5,121 +5,214 @@ import 'package:locally/common/models/orders/consumer_order_model.dart';
 import 'package:locally/common/providers/auth_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// --- Provider ---
+// --- Service Provider ---
 final orderServiceProvider = Provider<OrderService>((ref) {
   final client = ref.watch(supabaseClientProvider);
   return OrderService(client);
 });
 
-final myOrdersProvider = FutureProvider.autoDispose<List<OrderModel>>((ref) async {
-  final user = ref.watch(supabaseClientProvider).auth.currentUser;
-  if (user == null) return [];
-
+// --- Data Provider (Converted to StreamProvider) ---
+final myOrdersProvider = StreamProvider.autoDispose<List<OrderModel>>((ref) {
   final service = ref.watch(orderServiceProvider);
-  final result = await service.getConsumerOrders(user.id);
   
-  return result.fold(
-    (l) => throw Exception(l), 
-    (r) => r
-  );
+  // This stream will automatically emit new values whenever 
+  // the 'orders' table changes for this user.
+  return service.getConsumerOrdersStream();
 });
 
-// --- Service ---
 class OrderService {
   final SupabaseClient _supabase;
   OrderService(this._supabase);
 
   /// 🛒 Place Order
-  Future<Either<String, List<String>>> placeOrder({
-    required String consumerId,
-    required List<CartItemModel> cartItems,
-    required String deliveryAddress,
-    required double deliveryLat,
-    required double deliveryLong,
-  }) async {
-    if (cartItems.isEmpty) return const Left("Cart is empty");
+  /// Automatically uses the logged-in user's ID as the consumer_id
+  // Inside OrderService class
 
-    try {
-      // 1. Group items by Seller ID to create split orders
-      final Map<String, List<CartItemModel>> itemsBySeller = {};
+/// 🛒 Place Order (Refactored with Stock Check)
+Future<Either<String, List<String>>> placeOrder({
+  required List<CartItemModel> cartItems,
+  required String deliveryAddress,
+  required double deliveryLat,
+  required double deliveryLong,
+}) async {
+  final user = _supabase.auth.currentUser;
+  if (user == null) return const Left("User not logged in");
+  if (cartItems.isEmpty) return const Left("Cart is empty");
+
+  try {
+    // 1. Group items by Seller ID (Split Order Logic)
+    final Map<String, List<CartItemModel>> itemsBySeller = {};
+    
+    for (var item in cartItems) {
+      if (item.product == null) continue; 
+      final sellerId = item.product!.sellerId;
       
-      for (var item in cartItems) {
-        if (item.product == null) continue; 
-        final sellerId = item.product!.sellerId;
-        
-        if (!itemsBySeller.containsKey(sellerId)) {
-          itemsBySeller[sellerId] = [];
-        }
-        itemsBySeller[sellerId]!.add(item);
+      if (!itemsBySeller.containsKey(sellerId)) {
+        itemsBySeller[sellerId] = [];
       }
+      itemsBySeller[sellerId]!.add(item);
+    }
 
-      final List<String> createdOrderIds = [];
+    final List<String> createdOrderIds = [];
 
-      // 2. Process each Seller Group
-      for (var entry in itemsBySeller.entries) {
-        final sellerId = entry.key;
-        final sellerItems = entry.value;
+    // 2. Process each Seller Group
+    for (var entry in itemsBySeller.entries) {
+      final sellerId = entry.key;
+      final sellerItems = entry.value;
 
-        // Calculate Total for this specific order
-        final totalAmount = sellerItems.fold(0.0, (sum, item) {
-           return sum + item.totalCost;
+      // Calculate Total for this specific order batch
+      final totalAmount = sellerItems.fold(0.0, (sum, item) {
+         return sum + item.totalCost;
+      });
+
+      // --- CRITICAL STEP: BATCH STOCK CHECK AND DECREMENT ---
+      // We must check stock for ALL items in this seller's batch BEFORE inserting the order.
+      // If any one item fails, the exception is thrown, and we skip inserting the order.
+      
+      final List<Map<String, dynamic>> orderItemsPayload = [];
+      
+      for (var item in sellerItems) {
+        final price = item.product!.discountedPrice ?? item.product!.price;
+
+        // 🚨 Stock Check/Decrement via RPC
+        await _supabase.rpc('decrement_product_stock', params: {
+          'product_id_input': item.productId,
+          'quantity_input': item.quantity,
         });
-
-        // A. Insert Order Header
-        final orderRes = await _supabase.from('orders').insert({
-          'consumer_id': consumerId,
-          'seller_id': sellerId,
-          'status': 'pending',
-          'total_amount': totalAmount,
-          'delivery_address': deliveryAddress,
-          'delivery_lat': deliveryLat,
-          'delivery_long': deliveryLong,
-        }).select().single();
         
-        final orderId = orderRes['id'].toString();
-        createdOrderIds.add(orderId);
-
-        // B. Prepare Order Items
-        final List<Map<String, dynamic>> orderItemsPayload = sellerItems.map((item) {
-          final price = item.product!.discountedPrice ?? item.product!.price;
-          return {
-            'order_id': orderId,
-            'product_id': item.productId,
-            'quantity': item.quantity,
-            'price_at_purchase': price,
-          };
-        }).toList();
-
-        // C. Insert Order Items
-        await _supabase.from('order_items').insert(orderItemsPayload);
+        // Add to payload only if stock was successfully decremented
+        orderItemsPayload.add({
+          'order_id': '', // Placeholder, will be updated after header insert
+          'product_id': item.productId,
+          'quantity': item.quantity,
+          'price_at_purchase': price,
+        });
       }
+      // --- END CRITICAL STEP ---
 
-      // 3. Clear the Cart (Database side)
-      await _supabase.from('cart_items').delete().eq('user_id', consumerId);
+      // A. Insert Order Header (Only if all stock decrements succeeded)
+      final orderRes = await _supabase.from('orders').insert({
+        'consumer_id': user.id,
+        'seller_id': sellerId,
+        'status': 'pending',
+        'total_amount': totalAmount,
+        'delivery_address': deliveryAddress,
+        'delivery_lat': deliveryLat,
+        'delivery_long': deliveryLong,
+      }).select().single();
+      
+      final orderId = orderRes['id'].toString();
+      createdOrderIds.add(orderId);
 
-      return Right(createdOrderIds);
+      // B. Finalize Order Items Payload with the correct orderId
+      final finalOrderItemsPayload = orderItemsPayload.map((item) {
+        item['order_id'] = orderId;
+        return item;
+      }).toList();
 
-    } on PostgrestException catch (e) {
-      return Left(e.message);
+      // C. Insert Order Items
+      await _supabase.from('order_items').insert(finalOrderItemsPayload);
+    }
+
+    // 3. Clear the Cart for this user (Only if ALL seller groups succeeded)
+    await _supabase.from('cart_items').delete().eq('user_id', user.id);
+
+    return Right(createdOrderIds);
+
+  } on PostgrestException catch (e) {
+    // If stock check/decrement failed, the PostgrestException contains the error message
+    return Left(e.message);
+  } catch (e) {
+    return Left(e.toString());
+  }
+}
+
+  /// 📜 Get My Orders
+  /// Automatically fetches orders for the logged-in consumer
+  Stream<List<OrderModel>> getConsumerOrdersStream() {
+    final user = _supabase.auth.currentUser;
+    
+    if (user == null) {
+      // Return an empty stream or throw an error if preferred
+      return Stream.value([]); 
+    }
+
+    return _supabase
+        .from('orders')
+        .stream(primaryKey: ['id']) // Listen to the orders table
+        .eq('consumer_id', user.id)
+        .order('created_at', ascending: false)
+        .asyncMap((_) async {
+          // 💡 TRICK: Supabase streams don't support deep joins (order_items, products).
+          // We listen to the stream for the "event", but we run a fresh 
+          // .select() query to get the nested data structure.
+          
+          try {
+            final data = await _supabase
+                .from('orders')
+                .select('*, order_items(*, retail_products(product_name, image_urls))')
+                .eq('consumer_id', user.id)
+                .order('created_at', ascending: false);
+
+            final dataList = data as List<dynamic>;
+            return dataList.map((e) => OrderModel.fromMap(e)).toList();
+          } catch (e) {
+            // Throwing here allows Riverpod's AsyncValue to catch it as an AsyncError
+            throw Exception("Failed to fetch realtime orders: $e");
+          }
+        });
+  }
+
+  // --- Status Updates (RPC Calls) ---
+
+  /// 🏪 Retailer accepts order
+  Future<Either<String, void>> receiveOrder(String orderId) async {
+    // RPC 'receive_order' uses auth.uid() internally to verify seller ownership
+    try {
+      await _supabase.rpc('receive_order', params: {
+        'order_id_input': orderId,
+      });
+      return const Right(null);
     } catch (e) {
       return Left(e.toString());
     }
   }
 
-  /// 📜 Get Orders
-  Future<Either<String, List<OrderModel>>> getConsumerOrders(String consumerId) async {
+  /// 🚚 Mark as shipped
+  /// Requires sellerId explicitly to verify the package matches the pickup location
+  Future<Either<String, void>> receiveShipment(String orderId, String sellerId) async {
     try {
-      // We join 'order_items' AND nested 'retail_products' to get names/images
-      final data = await _supabase
-          .from('orders')
-          .select('*, order_items(*, retail_products(product_name, image_urls))')
-          .eq('consumer_id', consumerId)
-          .order('created_at', ascending: false);
+      await _supabase.rpc('receive_shipment', params: {
+        'order_id_input': orderId,
+        'seller_id_input': sellerId,
+      });
+      return const Right(null);
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
 
-      final List<dynamic> dataList = data as List<dynamic>;
-      final orders = dataList.map((e) => OrderModel.fromMap(e)).toList();
-      
-      return Right(orders);
+  /// 🏠 Consumer marks as delivered
+  Future<Either<String, void>> receiveDelivery(String orderId) async {
+    // RPC 'receive_delivery' uses auth.uid() internally to verify consumer ownership
+    try {
+      await _supabase.rpc('receive_delivery', params: {
+        'order_id_input': orderId,
+      });
+      return const Right(null);
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  /// ❌ Cancel Order
+  Future<Either<String, void>> cancelOrder(String orderId) async {
+    // RPC 'cancel_order' checks if auth.uid() is either the seller OR consumer
+    try {
+      await _supabase.rpc('cancel_order', params: {
+        'order_id_input': orderId,
+      });
+      return const Right(null);
     } catch (e) {
       return Left(e.toString());
     }

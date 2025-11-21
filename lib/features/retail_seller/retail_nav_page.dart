@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/widgets/bottom_navigator.dart';
-import 'package:locally/features/chat/pages/chat_list_page.dart';
-import 'package:locally/features/retail_seller/orders/pages/orders_page.dart';
+import 'package:locally/features/chat/pages/retailer_chat_list_page.dart';
+import 'package:locally/features/retail_seller/orders/wholesale_retail/pages/orders_page.dart';
 import 'package:locally/features/retail_seller/place_orders/pages/wholesale_search_page.dart';
 import 'package:locally/features/retail_seller/products/pages/my_retail_products_page.dart';
 import 'package:locally/features/retail_seller/profile_page/pages/profile_page.dart';
@@ -72,7 +72,10 @@ class _RetailNavPageState extends ConsumerState<RetailNavPage> {
       extendBody: true,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatListPage()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SellerChatListPage()),
+          );
         },
         child: const Icon(Icons.chat),
       ),
@@ -132,7 +135,7 @@ class _FadeIndexedStackState extends State<FadeIndexedStack> {
 
         return IgnorePointer(
           // Prevent clicking on invisible pages
-          ignoring: !active, 
+          ignoring: !active,
           child: AnimatedOpacity(
             duration: widget.duration,
             opacity: active ? 1.0 : 0.0,

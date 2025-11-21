@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/providers/inventory_service_provider.dart';
 import 'package:locally/common/providers/profile_provider.dart';
 import 'package:locally/common/services/chat/chat_service.dart';
-import 'package:locally/features/chat/pages/chat_list_page.dart';
+import 'package:locally/features/chat/pages/retailer_chat_list_page.dart';
 import 'package:locally/features/wholesale_seller/home/presentation/widgets/action.dart';
 import 'package:locally/features/wholesale_seller/home/presentation/widgets/alert_card.dart';
 import 'package:locally/features/wholesale_seller/home/presentation/widgets/rating_summary.dart';
@@ -211,12 +211,13 @@ class HomePage extends ConsumerWidget {
                                 loading: () => 'Checking messages...',
                                 error: (_, __) => 'Could not load chats.',
                               ),
-                              // Navigate to ChatListPage
+                              // Navigate to SellerChatListPage
                               onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const ChatListPage(),
+                                    builder: (context) =>
+                                        const SellerChatListPage(),
                                   ),
                                 );
                               },
