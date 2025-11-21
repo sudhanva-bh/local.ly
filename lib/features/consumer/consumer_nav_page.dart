@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:locally/common/widgets/bottom_navigator.dart';
 import 'package:locally/features/chat/pages/chat_list_page.dart';
 import 'package:locally/features/consumer/cart/cart_page.dart';
+import 'package:locally/features/consumer/consumer_orders/pages/consumer_order_page.dart';
 import 'package:locally/features/consumer/order/pages/consumer_order_screen.dart';
 import 'package:locally/features/consumer/profile_page/pages/consumer_profile_page.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -38,7 +39,7 @@ class _ConsumerNavPageState extends ConsumerState<ConsumerNavPage> {
     Center(child: Text('Consumer Home Feed')),
     ConsumerOrderScreen(),
     CartPage(),
-    Center(child: Text('My Orders')),
+    ConsumerOrdersPage(),
     ConsumerProfilePage(),
   ];
 

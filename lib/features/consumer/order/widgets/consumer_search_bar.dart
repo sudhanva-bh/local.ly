@@ -5,7 +5,6 @@ import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/providers/auth_providers.dart';
 import 'package:locally/features/consumer/order/controller/consumer_search_controller.dart';
 import 'package:locally/features/consumer/order/widgets/search_filters_modal.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SearchHeader extends ConsumerStatefulWidget {
   const SearchHeader({super.key});

@@ -1,6 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/models/products/retail_product_model.dart';
-import 'package:locally/common/providers/auth_providers.dart';
 import 'package:locally/common/models/product_categories/product_categories.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
