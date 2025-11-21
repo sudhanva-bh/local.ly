@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:locally/common/extensions/content_extensions.dart'; // For context.colors
 import 'package:locally/common/models/cart/cart_item_model.dart';
-import 'package:locally/features/consumer/cart/cart_controller.dart';
+import 'package:locally/features/consumer/cart/controllers/cart_controller.dart';
+import 'package:locally/features/consumer/checkout/pages/checkout_page.dart';
 
 class CartPage extends ConsumerWidget {
   const CartPage({super.key});
@@ -135,7 +136,12 @@ class CartPage extends ConsumerWidget {
                                 elevation: 0,
                               ),
                               onPressed: () {
-                                // TODO: Navigate to Checkout Page
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const CheckoutPage(),
+                                  ),
+                                );
                               },
                               child: const Text(
                                 "Proceed to Checkout",

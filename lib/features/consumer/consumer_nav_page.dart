@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:locally/common/widgets/bottom_navigator.dart';
 import 'package:locally/features/chat/pages/chat_list_page.dart';
 import 'package:locally/features/consumer/cart/cart_page.dart';
 import 'package:locally/features/consumer/order/pages/consumer_order_screen.dart';
 import 'package:locally/features/consumer/profile_page/pages/consumer_profile_page.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+// --- Provider ---
+final consumerNavIndexProvider = StateProvider<int>((ref) => 0);
 
 class ConsumerNavPage extends ConsumerStatefulWidget {
   final int initialIndex;
@@ -23,14 +27,19 @@ class _ConsumerNavPageState extends ConsumerState<ConsumerNavPage> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+
+    // Sync provider initially
+    Future.microtask(() {
+      ref.read(consumerNavIndexProvider.notifier).state = widget.initialIndex;
+    });
   }
 
   final List<Widget> _pages = const [
-    Center(child: Text('Consumer Home Feed')), // Index 0
-  ConsumerOrderScreen(), // Index 
-    CartPage(), // Index 2
-    Center(child: Text('My Orders')), // Index 3
-    ConsumerProfilePage(), // Index 4
+    Center(child: Text('Consumer Home Feed')),
+    ConsumerOrderScreen(),
+    CartPage(),
+    Center(child: Text('My Orders')),
+    ConsumerProfilePage(),
   ];
 
   final List<BottomNavItem> _navItems = [
@@ -61,15 +70,18 @@ class _ConsumerNavPageState extends ConsumerState<ConsumerNavPage> {
     ),
   ];
 
+  // --- Updated onTap with Provider Sync ---
   void _onNavTap(int index) {
     setState(() => _currentIndex = index);
+
+    ref.read(consumerNavIndexProvider.notifier).state = index;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      // Optional: Consumers also need to chat with sellers
+
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -80,7 +92,6 @@ class _ConsumerNavPageState extends ConsumerState<ConsumerNavPage> {
         child: const Icon(Icons.chat_bubble_outline),
       ),
 
-      // Custom Fade Stack
       body: FadeIndexedStack(
         index: _currentIndex,
         children: _pages,
@@ -105,10 +116,8 @@ class _ConsumerNavPageState extends ConsumerState<ConsumerNavPage> {
   }
 }
 
-// --- FADE INDEXED STACK (Reused) ---
+// --- FADE INDEXED STACK ---
 
-/// A custom Stack that keeps state alive (like IndexedStack)
-/// but animates opacity when switching index.
 class FadeIndexedStack extends StatefulWidget {
   final int index;
   final List<Widget> children;
@@ -136,7 +145,6 @@ class _FadeIndexedStackState extends State<FadeIndexedStack> {
         final bool active = i == widget.index;
 
         return IgnorePointer(
-          // Prevent clicking on invisible pages
           ignoring: !active,
           child: AnimatedOpacity(
             duration: widget.duration,

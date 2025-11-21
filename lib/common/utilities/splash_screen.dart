@@ -37,3 +37,63 @@ class GifSplashState extends State<GifSplash> {
     );
   }
 }
+
+
+// import 'package:flutter/material.dart';
+// import 'package:video_player/video_player.dart';
+// import 'package:locally/common/routes/app_routes.dart';
+
+// class GifSplash extends StatefulWidget {
+//   const GifSplash({super.key});
+
+//   @override
+//   State<GifSplash> createState() => _GifSplashState();
+// }
+
+// class _GifSplashState extends State<GifSplash> {
+//   late VideoPlayerController _controller;
+
+//   @override
+//   void initState() {
+//     super.initState();
+
+//     _controller = VideoPlayerController.asset(
+//       'assets/splash/splash_screen.mp4',
+//     )
+//       ..initialize().then((_) {
+//         setState(() {});
+//         _controller.play();
+//       });
+
+//     _controller.addListener(() {
+//       if (_controller.value.position >= _controller.value.duration) {
+//         Navigator.pushReplacementNamed(context, AppRoutes.appGate);
+//       }
+//     });
+//   }
+
+//   @override
+//   void dispose() {
+//     _controller.dispose();
+//     super.dispose();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: Colors.black,
+//       body: _controller.value.isInitialized
+//           ? SizedBox.expand(
+//               child: FittedBox(
+//                 fit: BoxFit.cover,
+//                 child: SizedBox(
+//                   width: _controller.value.size.width,
+//                   height: _controller.value.size.height,
+//                   child: VideoPlayer(_controller),
+//                 ),
+//               ),
+//             )
+//           : const SizedBox(),
+//     );
+//   }
+// }

@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
+import 'package:locally/common/providers/auth_providers.dart';
 import 'package:locally/features/consumer/order/controller/consumer_search_controller.dart';
 import 'package:locally/features/consumer/order/widgets/search_filters_modal.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SearchHeader extends ConsumerStatefulWidget {
   const SearchHeader({super.key});
@@ -25,7 +27,15 @@ class _SearchHeaderState extends ConsumerState<SearchHeader> {
 
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      await ref
+          .watch(supabaseClientProvider)
+          .rpc(
+            'add_search_history_entry',
+            params: {
+              'search_term': query,
+            },
+          );
       ref.read(searchFilterProvider.notifier).setQuery(query);
     });
   }

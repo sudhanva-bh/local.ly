@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locally/common/models/products/retail_product_model.dart';
-import 'package:locally/features/consumer/order/widgets/product_grid_cart.dart';
+import 'package:locally/features/consumer/order/widgets/product_grid_card.dart';
 
 class SearchResultsGrid extends StatelessWidget {
   final List<RetailProduct> products;
