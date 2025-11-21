@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/widgets/bottom_navigator.dart';
 import 'package:locally/features/chat/pages/retailer_chat_list_page.dart';
-import 'package:locally/features/retail_seller/orders/wholesale_retail/pages/orders_page.dart';
+import 'package:locally/features/retail_seller/orders/my_orders.dart';
 import 'package:locally/features/retail_seller/place_orders/pages/wholesale_search_page.dart';
 import 'package:locally/features/retail_seller/products/pages/my_retail_products_page.dart';
 import 'package:locally/features/retail_seller/profile_page/pages/profile_page.dart';
@@ -29,7 +29,7 @@ class _RetailNavPageState extends ConsumerState<RetailNavPage> {
   final List<Widget> _pages = const [
     Center(child: Text('Home')),
     MyRetailProductsPage(),
-    RetailOrdersPage(),
+    MyOrdersPage(),
     WholesaleSearchPage(),
     ProfilePage(),
   ];

@@ -223,9 +223,9 @@ class StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (color, label) = switch (status) {
-      OrderStatus.pending => (Colors.orange, "Pending"),
-      OrderStatus.accepted => (Colors.blue, "Accepted"),
-      OrderStatus.shipped => (Colors.indigo, "Shipped"),
+      OrderStatus.pending => (context.colors.onSurface, "Pending"),
+      OrderStatus.accepted => (context.colors.onSurface, "Accepted"),
+      OrderStatus.shipped => (context.colors.onSurface, "Shipped"),
       OrderStatus.delivered => (Colors.green, "Delivered"),
       OrderStatus.cancelled => (context.colors.error, "Cancelled"),
     };
@@ -265,90 +265,155 @@ class OrderTracker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 2. Cancelled State Handling
     if (status == OrderStatus.cancelled) {
-      return Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-          decoration: BoxDecoration(
-            color: context.colors.errorContainer.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            "This order has been cancelled.",
-            style: context.text.bodyMedium?.copyWith(
-              color: context.colors.error,
-              fontWeight: FontWeight.bold,
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 24),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: context.colors.errorContainer.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: context.colors.error.withOpacity(0.2)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.cancel_outlined, color: context.colors.error),
+            const SizedBox(width: 12),
+            Text(
+              "Order Cancelled",
+              style: context.text.titleMedium?.copyWith(
+                color: context.colors.error,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
+          ],
         ),
       );
     }
 
+    // 3. Define Steps
     final steps = [
-      (OrderStatus.pending, 'Placed', Icons.receipt_long),
-      (OrderStatus.accepted, 'Accepted', Icons.store),
-      (OrderStatus.shipped, 'Shipped', Icons.local_shipping),
-      (OrderStatus.delivered, 'Delivered', Icons.check_circle),
+      (OrderStatus.pending, 'Placed', Icons.receipt_long_rounded),
+      (OrderStatus.accepted, 'Accepted', Icons.store_rounded),
+      (OrderStatus.shipped, 'Shipped', Icons.local_shipping_rounded),
+      (OrderStatus.delivered, 'Delivered', Icons.check_circle_rounded),
     ];
 
     final currentIndex = steps.indexWhere((s) => s.$1 == status);
 
-    return SizedBox(
-      width: double.infinity, // ★ ensures full width usage
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: List.generate(steps.length, (index) {
-          final isActive = currentIndex != -1 && index <= currentIndex;
-          final isLast = index == steps.length - 1;
+          final isCompleted = index < currentIndex;
+          final isCurrent = index == currentIndex;
+          final isActive = index <= currentIndex;
 
-          final color = isActive
-              ? context.colors.primary
-              : context.colors.outlineVariant;
+          final primaryColor = context.colors.primary;
+          final greyColor = context.colors.outlineVariant;
+          final onPrimary = context.colors.onPrimary;
 
           return Expanded(
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Column(
-                  children: [
-                    Icon(
-                      steps[index].$3,
-                      size: 28,
-                      color: color,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      steps[index].$2,
-                      style: context.text.bodySmall?.copyWith(
-                        color: context.colors.onBackground, // ★ changed
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      width: 14,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: isActive ? color : null,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: color,
-                          width: 2,
+                // --- The Stepper Row (Fixed Height Wrapper) ---
+                // We wrap the entire line+icon row in a SizedBox of height 40.
+                // This ensures alignment is consistent regardless of icon animation.
+                SizedBox(
+                  height: 40,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Left Line
+                      Expanded(
+                        child: Container(
+                          height: 4,
+                          color: index == 0
+                              ? Colors.transparent
+                              : (isActive
+                                    ? primaryColor
+                                    : greyColor.withOpacity(0.3)),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                if (!isLast)
-                  Expanded(
-                    child: Container(
-                      height: 3, // ★ thicker connecting line
-                      margin: const EdgeInsets.only(top: 28, left: 6, right: 6),
-                      color: isActive && index < currentIndex
-                          ? context.colors.primary
-                          : context.colors.outlineVariant,
-                    ),
+
+                      // The Icon Node
+                      // Wrapper prevents layout shift when inner container grows
+                      SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: Center(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            width: isCurrent ? 40 : 32,
+                            height: isCurrent ? 40 : 32,
+                            decoration: BoxDecoration(
+                              color: isCompleted || isCurrent
+                                  ? primaryColor
+                                  : Colors.transparent,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isActive ? primaryColor : greyColor,
+                                width: 2,
+                              ),
+                              boxShadow: isCurrent
+                                  ? [
+                                      BoxShadow(
+                                        color: primaryColor.withOpacity(0.3),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ]
+                                  : [],
+                            ),
+                            child: Center(
+                              child: Icon(
+                                isCompleted ? Icons.check : steps[index].$3,
+                                size: isCurrent ? 20 : 16,
+                                color: isCompleted || isCurrent
+                                    ? onPrimary
+                                    : greyColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Right Line
+                      Expanded(
+                        child: Container(
+                          height: 4,
+                          color: index == steps.length - 1
+                              ? Colors.transparent
+                              : (index < currentIndex
+                                    ? primaryColor
+                                    : greyColor.withOpacity(0.3)),
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // --- The Text Label ---
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 300),
+                  style: isCurrent
+                      ? context.text.labelLarge!.copyWith(
+                          color: context.colors.primary,
+                          fontWeight: FontWeight.bold,
+                        )
+                      : context.text.labelMedium!.copyWith(
+                          color: context.colors.onSurfaceVariant,
+                        ),
+                  child: Text(
+                    steps[index].$2,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ],
             ),
           );

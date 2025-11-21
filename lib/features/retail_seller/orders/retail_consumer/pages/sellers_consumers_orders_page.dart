@@ -1,40 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:locally/common/extensions/content_extensions.dart';
+import 'package:locally/common/extensions/content_extensions.dart'; // Your theme extension
 import 'package:locally/common/models/orders/consumer_order_model.dart';
+import 'package:locally/common/services/orders/consumer_order_service.dart';
 import 'package:locally/features/consumer/view_orders/consumer_orders_page.dart';
 import 'package:locally/features/retail_seller/orders/retail_consumer/pages/seller_consumers_order_details_screen.dart';
-import 'package:locally/features/retail_seller/orders/retail_consumer/providers/seller_order_service.dart';
+// ⬇️ Make sure to import the file where you defined the 'sellerOrdersProvider' and 'orderServiceProvider'
+import 'package:locally/features/retail_seller/orders/retail_consumer/providers/seller_order_service.dart'; 
 
 class SellerOrdersPage extends ConsumerWidget {
   const SellerOrdersPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // ⚡ WATCH THE STREAM: This rebuilds automatically when DB changes
     final ordersAsync = ref.watch(sellerOrdersProvider);
 
-    return Scaffold(
-      backgroundColor: context.colors.surface,
-      appBar: AppBar(
-        title: Text(
-          'Incoming Orders',
-          style: context.text.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: context.colors.surface,
-        surfaceTintColor: Colors.transparent,
-        actions: [
-          IconButton(
-            onPressed: () => ref.refresh(sellerOrdersProvider),
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
-      body: ordersAsync.when(
+    return Container(
+      color: context.colors.surface,
+      child: ordersAsync.when(
         data: (orders) {
           if (orders.isEmpty) {
-            return _buildEmptyState(context);
+            return RefreshIndicator(
+              // Even with streams, a manual refresh is sometimes nice to have
+              onRefresh: () => ref.refresh(sellerOrdersProvider.future),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.7,
+                  child: _buildEmptyState(context),
+                ),
+              ),
+            );
           }
+
           return ListView.separated(
             padding: const EdgeInsets.all(16).copyWith(bottom: 100),
             itemCount: orders.length,
@@ -61,7 +61,7 @@ class SellerOrdersPage extends ConsumerWidget {
             color: context.colors.outline,
           ),
           const SizedBox(height: 16),
-          Text("No orders yet", style: context.text.headlineSmall),
+          Text("No consumer orders", style: context.text.headlineSmall),
           Text(
             "Wait for customers to place orders.",
             style: context.text.bodyMedium,
@@ -73,7 +73,7 @@ class SellerOrdersPage extends ConsumerWidget {
 }
 
 // -----------------------------------------------------------------------------
-// 🃏 WIDGET: SELLER ORDER CARD (With Quick Actions)
+// 🃏 WIDGET: SELLER ORDER CARD
 // -----------------------------------------------------------------------------
 class SellerOrderCard extends ConsumerWidget {
   final OrderModel order;
@@ -83,9 +83,7 @@ class SellerOrderCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dateStr = DateFormat('MMM dd • hh:mm a').format(order.createdAt);
-    final totalStr = NumberFormat.currency(
-      symbol: '₹',
-    ).format(order.totalAmount);
+    final totalStr = NumberFormat.currency(symbol: '₹').format(order.totalAmount);
     final itemCount = order.items?.length ?? 0;
 
     return Card(
@@ -120,7 +118,8 @@ class SellerOrderCard extends ConsumerWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  StatusChip(status: order.status), // Reuse your existing chip
+                  // Assuming you have a StatusChip widget. If not, use a Chip or Text.
+                  StatusChip(status: order.status), 
                 ],
               ),
               const SizedBox(height: 12),
@@ -151,12 +150,7 @@ class SellerOrderCard extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 4),
-              Text(
-                dateStr,
-                style: context.text.bodySmall?.copyWith(
-                  color: context.colors.outline,
-                ),
-              ),
+              Text(dateStr, style: context.text.bodySmall),
 
               // Actions Divider
               if (order.status == OrderStatus.pending) ...[
@@ -164,29 +158,31 @@ class SellerOrderCard extends ConsumerWidget {
                   padding: EdgeInsets.symmetric(vertical: 12),
                   child: Divider(height: 1),
                 ),
-                // Quick Action Buttons for Pending Orders
+                // Quick Action Buttons
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () => ref
-                            .read(sellerOrdersProvider.notifier)
-                            .updateStatus(order.id, OrderStatus.cancelled),
+                        onPressed: () {
+                          // TODO: Implement Shipping Label Logic
+                        },
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: context.colors.error,
+                          foregroundColor: context.colors.primary,
                           side: BorderSide(
-                            color: context.colors.error.withOpacity(0.5),
+                            color: context.colors.primary.withOpacity(0.5),
                           ),
                         ),
-                        child: const Text("Decline"),
+                        child: const Text("Shipping Label"),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: FilledButton(
-                        onPressed: () => ref
-                            .read(sellerOrdersProvider.notifier)
-                            .updateStatus(order.id, OrderStatus.accepted),
+                        onPressed: () async {
+                          // ⚡ ACTION: Call the service
+                          await ref.read(orderServiceProvider).receiveOrder(order.id);
+                          // No need to refresh manually; the Stream will update the UI!
+                        },
                         child: const Text("Accept Order"),
                       ),
                     ),

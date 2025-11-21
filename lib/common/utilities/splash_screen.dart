@@ -14,7 +14,7 @@ class GifSplashState extends State<GifSplash> {
   void initState() {
     super.initState();
     // ... in your GifSplashState initState method
-    Timer(const Duration(seconds: 6), () {
+    Timer(const Duration(seconds: 0), () {
       Navigator.pushReplacementNamed(
         context,
         AppRoutes.appGate,

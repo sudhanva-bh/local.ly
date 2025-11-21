@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/models/orders/consumer_order_model.dart';
-import 'package:locally/features/consumer/view_orders/consumer_orders_page.dart';
+import 'package:locally/common/services/orders/consumer_order_service.dart';
+// ⬇️ Import these providers
 import 'package:locally/features/retail_seller/orders/retail_consumer/providers/seller_order_service.dart';
+// ⬇️ Import your UI components (Adjust paths as needed)
+import 'package:locally/features/consumer/view_orders/consumer_orders_page.dart'; // Assuming OrderHeaderCard etc are here
 
 class SellerOrderDetailsScreen extends ConsumerWidget {
   final OrderModel order;
@@ -13,13 +16,19 @@ class SellerOrderDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch the provider to get the *latest* version of this specific order
-    // in case status changed since entering the screen.
-    final latestOrders = ref.watch(sellerOrdersProvider).value;
+    // ---------------------------------------------------------
+    // ⚡ READ LIVE ORDERS FROM sellerOrdersProvider
+    // ---------------------------------------------------------
+    // We watch the entire list stream. It's efficient enough for local state.
+    final asyncOrders = ref.watch(sellerOrdersProvider);
+    final latestOrders = asyncOrders.value;
+
+    // Find updated version of this order (if available in the stream)
     final currentOrder =
         latestOrders?.firstWhere(
           (o) => o.id == order.id,
-          orElse: () => order,
+          orElse: () =>
+              order, // Fallback to the passed object if stream is loading/empty
         ) ??
         order;
 
@@ -35,7 +44,6 @@ class SellerOrderDetailsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Status Tracker (Reuse existing component)
             OrderHeaderCard(
               orderId: currentOrder.id,
               date: DateFormat('MMM dd, yyyy').format(currentOrder.createdAt),
@@ -46,16 +54,14 @@ class SellerOrderDetailsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 20),
 
-            // 2. Customer / Delivery Info
             SectionLabel(label: "Customer Details"),
             const SizedBox(height: 8),
             AddressCard(address: currentOrder.deliveryAddress),
-            // You could add a "Call Customer" button here if you join consumer_profiles
             const SizedBox(height: 24),
 
-            // 3. Items List (Reuse existing logic)
             SectionLabel(label: "Items to Pack"),
             const SizedBox(height: 8),
+
             Container(
               decoration: BoxDecoration(
                 color: context.colors.surfaceContainerLow,
@@ -76,14 +82,15 @@ class SellerOrderDetailsScreen extends ConsumerWidget {
                 ],
               ),
             ),
+
             const SizedBox(height: 24),
 
-            // 4. Financials
             BillSummaryCard(totalAmount: currentOrder.totalAmount),
-            const SizedBox(height: 80), // Space for bottom bar
+            const SizedBox(height: 80),
           ],
         ),
       ),
+
       bottomNavigationBar: _buildManagementBar(context, ref, currentOrder),
     );
   }
@@ -93,44 +100,11 @@ class SellerOrderDetailsScreen extends ConsumerWidget {
     WidgetRef ref,
     OrderModel order,
   ) {
-    // Define the next logical step based on current status
-    final (
-      String label,
-      IconData icon,
-      VoidCallback? action,
-      Color? color,
-    ) = switch (order.status) {
-      OrderStatus.pending => (
-        "Accept Order",
-        Icons.check,
-        () => _update(ref, order.id, OrderStatus.accepted),
-        Colors.green, // Accept is usually green
-      ),
-      OrderStatus.accepted => (
-        "Mark as Shipped",
-        Icons.local_shipping,
-        () => _update(ref, order.id, OrderStatus.shipped),
-        context.colors.primary,
-      ),
-      OrderStatus.shipped => (
-        "Mark Delivered",
-        Icons.check_circle,
-        () => _update(ref, order.id, OrderStatus.delivered),
-        Colors.teal,
-      ),
-      OrderStatus.delivered => (
-        "Order Completed",
-        Icons.thumb_up,
-        null,
-        context.colors.outline,
-      ),
-      OrderStatus.cancelled => (
-        "Order Cancelled",
-        Icons.block,
-        null,
-        context.colors.error,
-      ),
-    };
+    // If the order is completed/cancelled, you might want to hide this bar or show "Archived"
+    if (order.status == OrderStatus.delivered ||
+        order.status == OrderStatus.cancelled) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -145,18 +119,17 @@ class SellerOrderDetailsScreen extends ConsumerWidget {
         ],
       ),
       child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
-            // Status Action Button
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: action,
-                icon: Icon(icon),
-                label: Text(label),
-                style: FilledButton.styleFrom(
-                  backgroundColor: color ?? context.colors.primary,
+            // -------------------- SHIPPING LABEL BUTTON --------------------
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  // TODO: Implement Printing Logic
+                },
+                icon: const Icon(Icons.receipt_long),
+                label: const Text("Shipping Label"),
+                style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -165,31 +138,51 @@ class SellerOrderDetailsScreen extends ConsumerWidget {
               ),
             ),
 
-            // Cancel Option (Only show if not delivered or already cancelled)
-            if (order.status != OrderStatus.delivered &&
-                order.status != OrderStatus.cancelled) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () {
-                    // Add confirmation dialog logic here
-                    _update(ref, order.id, OrderStatus.cancelled);
+            const SizedBox(width: 12),
+
+            // -------------------- DYNAMIC ACTION BUTTON --------------------
+            if (order.status == OrderStatus.pending)
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () async {
+                    // ⚡ TRIGGER REALTIME UPDATE
+                    await ref.read(orderServiceProvider).receiveOrder(order.id);
                   },
-                  child: Text(
-                    "Cancel Order",
-                    style: TextStyle(color: context.colors.error),
+                  icon: const Icon(Icons.check),
+                  label: const Text("Accept Order"),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              )
+            else if (order.status == OrderStatus.pending)
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () async {
+                    // ⚡ TRIGGER SHIPMENT
+                    // Note: Ensure you have this method in your service
+                    await ref
+                        .read(orderServiceProvider)
+                        .receiveShipment(order.id, order.sellerId);
+                  },
+                  icon: const Icon(Icons.local_shipping),
+                  label: const Text("Mark Shipped"),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: context.colors.primaryContainer,
+                    foregroundColor: context.colors.onPrimaryContainer,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
-            ],
           ],
         ),
       ),
     );
-  }
-
-  void _update(WidgetRef ref, String orderId, OrderStatus status) {
-    ref.read(sellerOrdersProvider.notifier).updateStatus(orderId, status);
   }
 }
