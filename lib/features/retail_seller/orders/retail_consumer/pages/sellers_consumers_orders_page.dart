@@ -5,72 +5,73 @@ import 'package:locally/common/extensions/content_extensions.dart'; // Your them
 import 'package:locally/common/models/orders/consumer_order_model.dart';
 import 'package:locally/common/services/orders/consumer_order_service.dart';
 import 'package:locally/features/consumer/view_orders/consumer_orders_page.dart';
-import 'package:locally/features/retail_seller/orders/retail_consumer/pages/seller_consumers_order_details_screen.dart';
+import 'package:locally/features/retail_seller/orders/retail_consumer/pages/seller_order_details_page.dart';
+// import 'package:locally/features/retail_seller/orders/retail_consumer/pages/seller_consumers_order_details_screen.dart';
 // ⬇️ Make sure to import the file where you defined the 'sellerOrdersProvider' and 'orderServiceProvider'
-import 'package:locally/features/retail_seller/orders/retail_consumer/providers/seller_order_service.dart'; 
+// import 'package:locally/features/retail_seller/orders/retail_consumer/providers/seller_order_service.dart'; 
 
-class SellerOrdersPage extends ConsumerWidget {
-  const SellerOrdersPage({super.key});
+// class SellerOrdersPage extends ConsumerWidget {
+//   const SellerOrdersPage({super.key});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // ⚡ WATCH THE STREAM: This rebuilds automatically when DB changes
-    final ordersAsync = ref.watch(sellerOrdersProvider);
+//   @override
+//   Widget build(BuildContext context, WidgetRef ref) {
+//     // ⚡ WATCH THE STREAM: This rebuilds automatically when DB changes
+//     final ordersAsync = ref.watch(sellerOrdersProvider);
 
-    return Container(
-      color: context.colors.surface,
-      child: ordersAsync.when(
-        data: (orders) {
-          if (orders.isEmpty) {
-            return RefreshIndicator(
-              // Even with streams, a manual refresh is sometimes nice to have
-              onRefresh: () => ref.refresh(sellerOrdersProvider.future),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.7,
-                  child: _buildEmptyState(context),
-                ),
-              ),
-            );
-          }
+//     return Container(
+//       color: context.colors.surface,
+//       child: ordersAsync.when(
+//         data: (orders) {
+//           if (orders.isEmpty) {
+//             return RefreshIndicator(
+//               // Even with streams, a manual refresh is sometimes nice to have
+//               onRefresh: () => ref.refresh(sellerOrdersProvider.future),
+//               child: SingleChildScrollView(
+//                 physics: const AlwaysScrollableScrollPhysics(),
+//                 child: SizedBox(
+//                   height: MediaQuery.of(context).size.height * 0.7,
+//                   child: _buildEmptyState(context),
+//                 ),
+//               ),
+//             );
+//           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(16).copyWith(bottom: 100),
-            itemCount: orders.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              return SellerOrderCard(order: orders[index]);
-            },
-          );
-        },
-        error: (err, stack) => Center(child: Text('Error: $err')),
-        loading: () => const Center(child: CircularProgressIndicator()),
-      ),
-    );
-  }
+//           return ListView.separated(
+//             padding: const EdgeInsets.all(16).copyWith(bottom: 100),
+//             itemCount: orders.length,
+//             separatorBuilder: (_, __) => const SizedBox(height: 16),
+//             itemBuilder: (context, index) {
+//               return SellerOrderCard(order: orders[index]);
+//             },
+//           );
+//         },
+//         error: (err, stack) => Center(child: Text('Error: $err')),
+//         loading: () => const Center(child: CircularProgressIndicator()),
+//       ),
+//     );
+//   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.storefront_outlined,
-            size: 64,
-            color: context.colors.outline,
-          ),
-          const SizedBox(height: 16),
-          Text("No consumer orders", style: context.text.headlineSmall),
-          Text(
-            "Wait for customers to place orders.",
-            style: context.text.bodyMedium,
-          ),
-        ],
-      ),
-    );
-  }
-}
+//   Widget _buildEmptyState(BuildContext context) {
+//     return Center(
+//       child: Column(
+//         mainAxisAlignment: MainAxisAlignment.center,
+//         children: [
+//           Icon(
+//             Icons.storefront_outlined,
+//             size: 64,
+//             color: context.colors.outline,
+//           ),
+//           const SizedBox(height: 16),
+//           Text("No consumer orders", style: context.text.headlineSmall),
+//           Text(
+//             "Wait for customers to place orders.",
+//             style: context.text.bodyMedium,
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
 
 // -----------------------------------------------------------------------------
 // 🃏 WIDGET: SELLER ORDER CARD
@@ -98,7 +99,7 @@ class SellerOrderCard extends ConsumerWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => SellerOrderDetailsScreen(order: order),
+              builder: (_) => SellerOrderDetailsScreen(initialOrder: order),
             ),
           );
         },

@@ -38,7 +38,6 @@ class AppGate extends ConsumerWidget {
 
         switch (accountType) {
           case AccountType.wholesaleSeller:
-            print("Wholesale");
             return const WholesaleNavPage();
           case AccountType.retailSeller:
             return const RetailNavPage();

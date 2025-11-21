@@ -11,6 +11,19 @@ final orderServiceProvider = Provider<OrderService>((ref) {
   return OrderService(client);
 });
 
+// 1. The List Provider (for the main page)
+final sellerOrdersProvider = StreamProvider.autoDispose<List<OrderModel>>((ref) {
+  final service = ref.watch(orderServiceProvider);
+  return service.getSellerOrdersStream();
+});
+
+// 2. The Single Order Provider (for the details page)
+// This ensures that if the status changes while viewing details, the UI updates.
+final sellerOrderDetailsProvider = StreamProvider.family.autoDispose<OrderModel, String>((ref, orderId) {
+  final service = ref.watch(orderServiceProvider);
+  return service.getSingleOrderStream(orderId);
+});
+
 // --- Data Provider (Converted to StreamProvider) ---
 final myOrdersProvider = StreamProvider.autoDispose<List<OrderModel>>((ref) {
   final service = ref.watch(orderServiceProvider);
@@ -257,5 +270,34 @@ class OrderService {
     } catch (e) {
       return Left(e.toString());
     }
+  }
+}
+
+extension OrderServiceExtensions on OrderService {
+  
+  /// 🔍 Get Single Order Stream (Realtime)
+  Stream<OrderModel> getSingleOrderStream(String orderId) {
+    // We subscribe to the specific row in the DB
+    return _supabase
+        .from('orders')
+        .stream(primaryKey: ['id'])
+        .eq('id', orderId)
+        .asyncMap((event) async {
+          // If the order was deleted or doesn't exist
+          if (event.isEmpty) {
+            throw Exception("Order not found");
+          }
+          
+          // We need to fetch the full details (items + products) again
+          // because the stream event only gives us the order header.
+          // Reuse your existing fetch logic but filter by ID.
+          final data = await _supabase
+              .from('orders')
+              .select('*, order_items(*, retail_products(product_name, image_urls))')
+              .eq('id', orderId)
+              .single();
+          
+          return OrderModel.fromMap(data);
+        });
   }
 }
