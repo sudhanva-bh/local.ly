@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:locally/common/extensions/content_extensions.dart'; // Your theme extension
 import 'package:locally/common/models/orders/consumer_order_model.dart';
 import 'package:locally/common/services/orders/consumer_order_service.dart';
-import 'package:locally/features/consumer/view_orders/consumer_orders_page.dart';
+import 'package:locally/features/consumer/view_orders/widgets/status_chip.dart';
 import 'package:locally/features/retail_seller/orders/retail_consumer/pages/seller_order_details_page.dart';
 // import 'package:locally/features/retail_seller/orders/retail_consumer/pages/seller_consumers_order_details_screen.dart';
 // ⬇️ Make sure to import the file where you defined the 'sellerOrdersProvider' and 'orderServiceProvider'

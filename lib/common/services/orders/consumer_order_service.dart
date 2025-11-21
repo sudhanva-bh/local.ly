@@ -33,6 +33,12 @@ final myOrdersProvider = StreamProvider.autoDispose<List<OrderModel>>((ref) {
   return service.getConsumerOrdersStream();
 });
 
+final singleOrderProvider = StreamProvider.family.autoDispose<OrderModel, String>((ref, orderId) {
+  final service = ref.watch(orderServiceProvider);
+  // Uses the extension method from your Service code
+  return service.getSingleOrderStream(orderId);
+});
+
 class OrderService {
   final SupabaseClient _supabase;
   OrderService(this._supabase);

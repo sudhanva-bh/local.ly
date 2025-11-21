@@ -473,8 +473,9 @@ class _OtpDialogState extends State<_OtpDialog> {
                     await Future.delayed(
                       const Duration(seconds: 2),
                     ); // Verify simulation
-                    if (context.mounted)
+                    if (context.mounted) {
                       Navigator.pop(context, true); // Success
+                    }
                   }
                 },
           child: _isLoading

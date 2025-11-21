@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/features/retail_seller/orders/retail_consumer/pages/seller_orders_page.dart';
-import 'package:locally/features/retail_seller/orders/retail_consumer/pages/sellers_consumers_orders_page.dart';
 import 'package:locally/features/retail_seller/orders/wholesale_retail/retail_orders_page.dart';
 
 class MyOrdersPage extends ConsumerWidget {

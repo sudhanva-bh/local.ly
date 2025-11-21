@@ -6,7 +6,7 @@ import 'package:locally/features/chat/pages/consumer_chat_list_page.dart';
 import 'package:locally/features/consumer/cart/cart_page.dart';
 import 'package:locally/features/consumer/order/pages/consumer_order_screen.dart';
 import 'package:locally/features/consumer/profile_page/pages/consumer_profile_page.dart';
-import 'package:locally/features/consumer/view_orders/consumer_orders_page.dart';
+import 'package:locally/features/consumer/view_orders/pages/consumer_orders_page.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // --- Provider ---
