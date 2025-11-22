@@ -3,12 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
+import 'package:locally/common/models/products/retail_product_model.dart';
 import 'package:locally/common/models/users/account_type.dart';
 import 'package:locally/common/models/users/seller_model.dart';
+import 'package:locally/common/providers/product_service_providers.dart';
 import 'package:locally/common/providers/profile_provider.dart';
+import 'package:locally/features/consumer/view_product/pages/consumer_view_product.dart';
 import 'package:locally/features/retail_seller/profile_page/widgets/editable_info_tile.dart';
 import 'package:locally/features/retail_seller/profile_page/widgets/shop_location_map.dart';
-import 'package:locally/features/view_seller/widgets/add_review_sheet.dart'; // New widget
+import 'package:locally/features/view_seller/widgets/add_review_sheet.dart';
+
+/// Provider to stream products for a specific seller
+final productsBySellerIdProvider =
+    StreamProvider.family<List<RetailProduct>, String>((ref, sellerId) {
+      final service = ref.watch(retailProductServiceProvider);
+      return service.getProductsBySeller(sellerId);
+    });
 
 class ViewSellerBody extends ConsumerWidget {
   final Seller seller;
@@ -39,74 +49,73 @@ class ViewSellerBody extends ConsumerWidget {
     // Consistent shadow
     final shadowColor = colors.shadow.withOpacity(0.1);
 
+    // Watch the products for this seller
+    final productsAsync = ref.watch(productsBySellerIdProvider(seller.uid));
+
     return RefreshIndicator(
       // Allow pull-to-refresh to get latest seller data
-      onRefresh: () async =>
-          await ref.refresh(getProfileByIdProvider(seller.uid).future),
+      onRefresh: () async {
+        await ref.refresh(getProfileByIdProvider(seller.uid).future);
+        // Also refresh the product list stream if needed (streams usually auto-update, but good practice)
+        ref.invalidate(productsBySellerIdProvider(seller.uid));
+      },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 100),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // 🏪 Profile image with shadow
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: shadowColor,
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundImage: seller.profileImageUrl != null
-                      ? NetworkImage(seller.profileImageUrl!)
-                      : null,
-                  child: seller.profileImageUrl == null
-                      ? const Icon(Icons.store, size: 48)
-                      : null,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // 🏷️ Shop name (Read-only)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  seller.shopName,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+        padding: const EdgeInsets.only(bottom: 100), // Padding for FAB
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 16),
+            // 🏪 Profile image with shadow
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: shadowColor,
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 50,
+                backgroundImage: seller.profileImageUrl != null
+                    ? NetworkImage(seller.profileImageUrl!)
+                    : null,
+                child: seller.profileImageUrl == null
+                    ? const Icon(Icons.store, size: 48)
+                    : null,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // 🏷️ Shop name (Read-only)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                seller.shopName,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(
-                seller.accountType.toWords(),
-                style: TextStyle(color: colors.onSurface.withOpacity(0.6)),
-              ),
-              const SizedBox(height: 20),
+            ),
+            Text(
+              seller.accountType.toWords(),
+              style: TextStyle(color: colors.onSurface.withOpacity(0.6)),
+            ),
+            const SizedBox(height: 20),
 
-              // 📦 Product count
-              Card(
-                elevation: _cardElevation,
-                shadowColor: shadowColor,
-                shape: cardShape,
-                child: ListTile(
-                  leading: const Icon(Icons.inventory_2_outlined),
-                  title: const Text("Products"),
-                  subtitle: Text('$productCount total'),
-                ),
-              ),
-              const SizedBox(height: _sectionSpacing),
+            // 🛒 NEW: Horizontal Products Scroll Section
+            // We don't add horizontal padding here so the list can scroll edge-to-edge
+            _buildProductsSection(context, productsAsync),
+            const SizedBox(height: _sectionSpacing),
 
-              // 📞 Contact Info Group (Read-only)
-              Card(
+            // 📞 Contact Info Group (Read-only)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Card(
                 elevation: _cardElevation,
                 shadowColor: shadowColor,
                 shape: cardShape,
@@ -135,26 +144,32 @@ class ViewSellerBody extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: _sectionSpacing),
+            ),
+            const SizedBox(height: _sectionSpacing),
 
-              // 🗺️ Map display
-              Card(
+            // 🗺️ Map display
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Card(
                 elevation: _cardElevation,
                 shadowColor: shadowColor,
                 shape: cardShape,
                 clipBehavior: Clip.antiAlias, // Important for map
                 child: hasLocation
-                    ? ShopLocationMap(seller: seller) // Re-using this widget
+                    ? ShopLocationMap(seller: seller)
                     : Container(
                         padding: const EdgeInsets.all(16),
                         alignment: Alignment.center,
                         child: const Text('No location set'),
                       ),
               ),
-              const SizedBox(height: _sectionSpacing),
+            ),
+            const SizedBox(height: _sectionSpacing),
 
-              // ✨ Account Meta Group
-              Card(
+            // ✨ Account Meta Group
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Card(
                 elevation: _cardElevation,
                 shadowColor: shadowColor,
                 shape: cardShape,
@@ -176,10 +191,13 @@ class ViewSellerBody extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: _sectionSpacing),
+            ),
+            const SizedBox(height: _sectionSpacing),
 
-              // ⭐ Ratings (with "Add Review" button)
-              Card(
+            // ⭐ Ratings (with "Add Review" button)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Card(
                 elevation: _cardElevation,
                 shadowColor: shadowColor,
                 shape: cardShape,
@@ -205,7 +223,6 @@ class ViewSellerBody extends ConsumerWidget {
                               'Ratings',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
-                            // --- NEW FEATURE ---
                             TextButton.icon(
                               icon: const Icon(
                                 Icons.rate_review_outlined,
@@ -228,13 +245,10 @@ class ViewSellerBody extends ConsumerWidget {
                                   Icons.star,
                                   color: Colors.amber,
                                 ),
-                                // Show the reviewer's name
                                 title: Text(r.reviewerName ?? 'Anonymous'),
-                                // Format the subtitle
                                 subtitle: Text(
                                   '${r.stars}/5 - ${r.title}\n${r.description ?? ''}',
                                 ),
-                                // Use three lines if there is a description
                                 isThreeLine:
                                     r.description != null &&
                                     r.description!.isNotEmpty,
@@ -251,15 +265,100 @@ class ViewSellerBody extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
-            ],
-          ),
+            ),
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );
   }
 
-  /// Helper to show the "Add Review" bottom sheet
+  Widget _buildProductsSection(
+    BuildContext context,
+    AsyncValue<List<RetailProduct>> productsAsync,
+  ) {
+    return productsAsync.when(
+      data: (products) {
+        if (products.isEmpty) {
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Text(
+                  'Products (0)',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Card(
+                  elevation: 0,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.all(24.0),
+                    child: Center(
+                      child: Text(
+                        "This seller hasn't listed any products yet.",
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+
+        // --- HORIZONTAL SCROLLING LIST ---
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 16.0,
+              ),
+              child: Text(
+                'Products',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 240, // Height constraint for the horizontal list
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: products.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  return _HorizontalProductCard(product: products[index]);
+                },
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const SizedBox(
+        height: 240,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stack) => Center(
+        child: Text('Error loading products: $error'),
+      ),
+    );
+  }
+
   Future<void> _showAddReviewSheet(
     BuildContext context,
     WidgetRef ref,
@@ -273,21 +372,152 @@ class ViewSellerBody extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        // Pass the seller to the new sheet widget
         return AddReviewSheet(seller: seller);
       },
     );
   }
 
-  // Helper method to format dates
   String _formatDate(DateTime? date) {
-    if (date == null) {
-      return 'Not available';
-    }
+    if (date == null) return 'Not available';
     try {
       return DateFormat('d MMM yyyy, h:mm a').format(date);
     } catch (e) {
       return date.toIso8601String();
     }
+  }
+}
+
+class _HorizontalProductCard extends StatefulWidget {
+  final RetailProduct product;
+  const _HorizontalProductCard({required this.product});
+
+  @override
+  State<_HorizontalProductCard> createState() => _HorizontalProductCardState();
+}
+
+class _HorizontalProductCardState extends State<_HorizontalProductCard> {
+  double _scale = 1.0;
+
+  void _onTapDown(TapDownDetails details) {
+    setState(() {
+      _scale = 0.95; // pressed scale
+    });
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    setState(() {
+      _scale = 1.0; // release scale
+    });
+  }
+
+  void _onTapCancel() {
+    setState(() {
+      _scale = 1.0;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const double cardWidth = 160.0;
+    final product = widget.product;
+    final hasImage = product.imageUrls.isNotEmpty;
+
+    return GestureDetector(
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _onTapCancel,
+
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ConsumerViewProduct(
+              productId: product.productId,
+              placeholderImage: product.imageUrls.first,
+            ),
+          ),
+        );
+      },
+
+      child: AnimatedScale(
+        scale: _scale,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+
+        child: SizedBox(
+          width: cardWidth,
+          child: Material(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            clipBehavior: Clip.antiAlias,
+            elevation: 2,
+            shadowColor: Theme.of(context).shadowColor.withOpacity(0.1),
+
+            child: InkWell(
+              splashColor: Colors.black12,
+              highlightColor: Colors.transparent,
+
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image Section
+                  Expanded(
+                    child: Container(
+                      color: Colors.grey[200],
+                      width: double.infinity,
+                      child: hasImage
+                          ? Hero(
+                              tag: 'product_img_${product.productId}',
+                              child: Image.network(
+                                product.imageUrls.first,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.broken_image,
+                                  size: 40,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            )
+                          : const Icon(
+                              Icons.image_not_supported,
+                              size: 40,
+                              color: Colors.grey,
+                            ),
+                    ),
+                  ),
+
+                  // Info Section
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "₹${product.price.toStringAsFixed(2)}",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

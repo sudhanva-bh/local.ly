@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:locally/common/routes/app_routes.dart';
+import 'package:flutter/foundation.dart';
 
 class GifSplash extends StatefulWidget {
   const GifSplash({super.key});
@@ -14,7 +15,7 @@ class GifSplashState extends State<GifSplash> {
   void initState() {
     super.initState();
     // ... in your GifSplashState initState method
-    Timer(const Duration(seconds: 6), () {
+    Timer(const Duration(seconds: kDebugMode ? 0 : 6), () {
       Navigator.pushReplacementNamed(
         context,
         AppRoutes.appGate,

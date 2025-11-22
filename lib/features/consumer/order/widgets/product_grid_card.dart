@@ -70,6 +70,7 @@ class _RetailProductGridCardState extends ConsumerState<RetailProductGridCard> {
             MaterialPageRoute(
               builder: (context) => ConsumerViewProduct(
                 productId: widget.product.productId,
+                placeholderImage: widget.product.imageUrls.first,
               ),
             ),
           );

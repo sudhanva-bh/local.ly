@@ -8,16 +8,23 @@ import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/models/products/retail_product_model.dart';
 import 'package:locally/common/providers/consumer_profile_provider.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
-import 'package:locally/common/providers/profile_provider.dart'; // Ensure this is imported
+import 'package:locally/common/providers/profile_provider.dart';
 import 'package:locally/features/consumer/cart/controllers/cart_controller.dart';
 import 'package:locally/features/consumer/view_product/widgets/rating_section.dart';
 import 'package:locally/features/retail_seller/view_product_for_order/widgets/product_map.dart';
 import 'package:locally/common/widgets/products/image_gallary.dart';
 import 'package:locally/features/view_seller/pages/view_seller_page.dart';
+import 'package:shimmer/shimmer.dart'; // Ensure this is imported
 
 class ConsumerViewProduct extends ConsumerStatefulWidget {
   final String productId;
-  const ConsumerViewProduct({super.key, required this.productId});
+  final String? placeholderImage;
+
+  const ConsumerViewProduct({
+    super.key,
+    required this.productId,
+    this.placeholderImage,
+  });
 
   @override
   ConsumerState<ConsumerViewProduct> createState() =>
@@ -27,7 +34,6 @@ class ConsumerViewProduct extends ConsumerStatefulWidget {
 class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
   int _quantity = 1;
 
-  /// Increment quantity logic with stock check
   void _increment(int maxStock) {
     if (_quantity >= maxStock) return;
     setState(() {
@@ -35,7 +41,6 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
     });
   }
 
-  /// Decrement quantity logic
   void _decrement() {
     if (_quantity <= 1) return;
     setState(() {
@@ -43,10 +48,8 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
     });
   }
 
-  /// Add the selected quantity to the cart
   Future<void> _addToCart(RetailProduct product) async {
     try {
-      // Trigger the CartController to add the item
       await ref
           .read(cartControllerProvider.notifier)
           .addItem(
@@ -67,7 +70,6 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
               label: 'UNDO',
               textColor: Colors.white,
               onPressed: () {
-                // Optimistic undo logic
                 ref
                     .read(cartControllerProvider.notifier)
                     .removeItem(product.productId);
@@ -75,7 +77,6 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
             ),
           ),
         );
-        // Reset quantity to 1 after successful add
         setState(() {
           _quantity = 1;
         });
@@ -92,8 +93,6 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
     }
   }
 
-  /// Show the map bottom sheet
-  /// We use a local adapter because existing sheets are typed for WholesaleProduct
   void _showExpandedMap(BuildContext context, RetailProduct product) {
     showModalBottomSheet(
       context: context,
@@ -105,7 +104,7 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
     );
   }
 
-  /// Builds the Bottom Bar with Quantity Selector and Add to Cart button
+  // ... [Bottom Bar helper remains unchanged] ...
   Widget _buildBottomBar(BuildContext context, RetailProduct product) {
     final colors = context.colors;
     final text = context.text;
@@ -118,7 +117,6 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
         children: [
-          // --- Quantity Selector ---
           if (!isOutOfStock) ...[
             Container(
               decoration: BoxDecoration(
@@ -150,8 +148,6 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
             ),
             const SizedBox(width: 16),
           ],
-
-          // --- Add to Cart Button ---
           Expanded(
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -178,12 +174,161 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
     );
   }
 
+  /// --------------------------------------------------------------------------
+  /// ✨ SHIMMER LOADING BUILDER
+  /// --------------------------------------------------------------------------
+  Widget _buildShimmerLoading(BuildContext context) {
+    final colors = context.colors;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Helper to create grey placeholders
+    Widget shimmerBox({double? height, double? width, double radius = 8}) {
+      return Container(
+        height: height,
+        width: width,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(radius),
+        ),
+      );
+    }
+
+    // Determine if we show the hero image or a shimmer box for the image
+    Widget imageSection;
+    if (widget.placeholderImage != null) {
+      imageSection = Hero(
+        tag: 'product_img_${widget.productId}',
+        child: ProductImageGallery(imageUrls: [widget.placeholderImage!]),
+      );
+    } else {
+      imageSection = Shimmer.fromColors(
+        baseColor: colors.surfaceContainerHighest,
+        highlightColor: colors.surface,
+        child: Container(
+          height: screenHeight * 0.4, // Approx image height
+          color: Colors.white,
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Image Section (Real Image or Shimmer)
+          imageSection,
+          const SizedBox(height: 16),
+
+          // 2. Details Section (Always Shimmer)
+          Container(
+            width: double.infinity,
+            height: screenHeight * 0.6,
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.shadow.withOpacity(0.05),
+                  blurRadius: 16,
+                  offset: const Offset(0, -4),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(24),
+            child: Shimmer.fromColors(
+              baseColor: colors.surfaceContainerHighest,
+              highlightColor: colors.surface, // Lighter for contrast
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title and Price Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            shimmerBox(height: 24, width: double.infinity),
+                            const SizedBox(height: 8),
+                            shimmerBox(height: 24, width: 150),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+                      // Price
+                      shimmerBox(height: 32, width: 80),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Seller Info Box
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white, width: 1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        shimmerBox(height: 24, width: 24, radius: 100),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            shimmerBox(height: 10, width: 40),
+                            const SizedBox(height: 4),
+                            shimmerBox(height: 14, width: 100),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Description Title
+                  shimmerBox(height: 20, width: 100),
+                  const SizedBox(height: 12),
+                  // Description Lines
+                  shimmerBox(height: 14, width: double.infinity),
+                  const SizedBox(height: 8),
+                  shimmerBox(height: 14, width: double.infinity),
+                  const SizedBox(height: 8),
+                  shimmerBox(height: 14, width: 200),
+
+                  const SizedBox(height: 24),
+                  Divider(color: Colors.white),
+                  const SizedBox(height: 12),
+
+                  // Map Placeholder
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      shimmerBox(height: 20, width: 100),
+                      shimmerBox(height: 20, width: 60),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  shimmerBox(height: 150, width: double.infinity, radius: 12),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final text = context.text;
 
-    // Fetch the retail product stream
     final productAsync = ref.watch(retailProductByIdProvider(widget.productId));
 
     return Scaffold(
@@ -192,6 +337,7 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        // Ensure Back button is visible during loading/shimmer
         leading: IconButton(
           icon: Container(
             padding: const EdgeInsets.all(8),
@@ -207,7 +353,7 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
       bottomNavigationBar: productAsync.when(
         data: (product) =>
             product != null ? _buildBottomBar(context, product) : null,
-        loading: () => null,
+        loading: () => null, // Shimmer covers body, no bottom bar needed yet
         error: (_, __) => null,
       ),
       body: productAsync.when(
@@ -215,7 +361,7 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
           if (product == null) {
             return const Center(child: Text("Product not found."));
           }
-
+          // ... [Existing Data View Code - Same as provided in prompt] ...
           return SingleChildScrollView(
             padding: const EdgeInsets.only(bottom: 100),
             child: Column(
@@ -255,7 +401,7 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
                         children: [
                           Expanded(
                             child: Text(
-                              product.name, //
+                              product.name,
                               style: text.headlineSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -276,7 +422,7 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
                               ),
                               if (product.isDiscounted)
                                 Text(
-                                  product.discountPercentage, //
+                                  product.discountPercentage,
                                   style: text.labelMedium?.copyWith(
                                     color: Colors.green,
                                     fontWeight: FontWeight.bold,
@@ -313,7 +459,6 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text("Sold by", style: text.labelSmall),
-                                    // 🌟 UPDATED SELLER FETCH LOGIC 🌟
                                     Consumer(
                                       builder: (context, ref, _) {
                                         return ref
@@ -324,8 +469,7 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
                                             )
                                             .when(
                                               data: (seller) => Text(
-                                                seller
-                                                    .shopName, // Assuming Shop Name for sellers
+                                                seller.shopName,
                                                 style: text.bodyMedium!
                                                     .copyWith(
                                                       fontWeight:
@@ -374,7 +518,7 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
 
                       /// 🌟 Ratings Section
                       ConsumerProductRatingsSection(
-                        productId: product.productId, // Pass the ID
+                        productId: product.productId,
                         ratings: product.ratings,
                         averageRating: product.averageRating,
                       ),
@@ -404,7 +548,6 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
                               ],
                             ),
                             const SizedBox(height: 8),
-
                             GestureDetector(
                               onTap: () => _showExpandedMap(context, product),
                               child: AbsorbPointer(
@@ -423,16 +566,15 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        // 🚀 Updated Loading State
+        loading: () => _buildShimmerLoading(context),
         error: (error, _) => Center(child: Text('Error: $error')),
       ),
     );
   }
 }
 
-/// --------------------------------------------------------------------------
-/// INTERNAL WIDGET: Retail Expanded Map Sheet
-/// --------------------------------------------------------------------------
+// ... [_RetailExpandedMapSheet remains unchanged] ...
 class _RetailExpandedMapSheet extends ConsumerWidget {
   final RetailProduct product;
 
@@ -442,7 +584,6 @@ class _RetailExpandedMapSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final text = context.text;
-    // Get current consumer profile to calculate distance/show relative location
     final userProfileAsync = ref.watch(currentConsumerProfileProvider);
 
     return Container(
@@ -453,7 +594,6 @@ class _RetailExpandedMapSheet extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          // Header
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             child: Row(
@@ -468,15 +608,12 @@ class _RetailExpandedMapSheet extends ConsumerWidget {
             ),
           ),
           Divider(height: 1, color: colors.outline.withOpacity(0.3)),
-
-          // Map
           Expanded(
             child: userProfileAsync.when(
               data: (user) {
                 if (user == null ||
                     user.latitude == null ||
                     user.longitude == null) {
-                  // User location unknown, center on product
                   return _buildMap(
                     context: context,
                     productLocation: LatLng(
@@ -525,7 +662,6 @@ class _RetailExpandedMapSheet extends ConsumerWidget {
     final colors = context.colors;
 
     final List<Marker> markers = [
-      // Product Marker
       Marker(
         point: productLocation,
         width: 48,
@@ -554,7 +690,6 @@ class _RetailExpandedMapSheet extends ConsumerWidget {
 
     if (userLocation != null) {
       markers.add(
-        // User Marker
         Marker(
           point: userLocation,
           width: 48,

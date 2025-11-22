@@ -4,86 +4,66 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:locally/common/widgets/bottom_navigator.dart';
 import 'package:locally/features/chat/pages/consumer_chat_list_page.dart';
 import 'package:locally/features/consumer/cart/pages/cart_page.dart';
+import 'package:locally/features/consumer/home/pages/consumer_home_page.dart';
 import 'package:locally/features/consumer/order/pages/consumer_order_screen.dart';
 import 'package:locally/features/consumer/profile_page/pages/consumer_profile_page.dart';
 import 'package:locally/features/consumer/view_orders/pages/consumer_orders_page.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // --- Provider ---
+// This is now the Single Source of Truth for navigation
 final consumerNavIndexProvider = StateProvider<int>((ref) => 0);
 
-class ConsumerNavPage extends ConsumerStatefulWidget {
-  final int initialIndex;
-
-  const ConsumerNavPage({super.key, this.initialIndex = 0});
+class ConsumerNavPage extends ConsumerWidget {
+  const ConsumerNavPage({super.key});
 
   @override
-  ConsumerState<ConsumerNavPage> createState() => _ConsumerNavPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 1. Watch the provider. Rebuilds whenever the index changes.
+    final currentIndex = ref.watch(consumerNavIndexProvider);
 
-class _ConsumerNavPageState extends ConsumerState<ConsumerNavPage> {
-  late int _currentIndex;
+    // Page Definitions
+    const List<Widget> pages = [
+      ConsumerHomePage(),
+      ConsumerOrderScreen(), // Search (assuming this is search based on icon)
+      CartPage(),
+      ConsumerOrdersPage(),
+      ConsumerProfilePage(),
+    ];
 
-  @override
-  void initState() {
-    super.initState();
-    _currentIndex = widget.initialIndex;
+    // Nav Item Definitions
+    final List<BottomNavItem> navItems = [
+      BottomNavItem(
+        icon: Icons.home_outlined,
+        activeIcon: Icons.home,
+        label: 'Home',
+      ),
+      BottomNavItem(
+        icon: LucideIcons.search,
+        activeIcon: LucideIcons.search,
+        label: 'Search',
+      ),
+      BottomNavItem(
+        icon: LucideIcons.shoppingCart,
+        activeIcon: LucideIcons.shoppingCart,
+        label: 'Cart',
+      ),
+      BottomNavItem(
+        icon: LucideIcons.shoppingBag,
+        activeIcon: LucideIcons.shoppingBag,
+        label: 'Orders',
+      ),
+      BottomNavItem(
+        icon: Icons.person_outline,
+        activeIcon: Icons.person,
+        label: 'Profile',
+      ),
+    ];
 
-    // Sync provider initially
-    Future.microtask(() {
-      ref.read(consumerNavIndexProvider.notifier).state = widget.initialIndex;
-    });
-  }
-
-  final List<Widget> _pages = const [
-    Center(child: Text('Consumer Home Feed')),
-    ConsumerOrderScreen(),
-    CartPage(),
-    ConsumerOrdersPage(),
-    ConsumerProfilePage(),
-  ];
-
-  final List<BottomNavItem> _navItems = [
-    BottomNavItem(
-      icon: Icons.home_outlined,
-      activeIcon: Icons.home,
-      label: 'Home',
-    ),
-    BottomNavItem(
-      icon: LucideIcons.search,
-      activeIcon: LucideIcons.search,
-      label: 'Search',
-    ),
-    BottomNavItem(
-      icon: LucideIcons.shoppingCart,
-      activeIcon: LucideIcons.shoppingCart,
-      label: 'Cart',
-    ),
-    BottomNavItem(
-      icon: LucideIcons.shoppingBag,
-      activeIcon: LucideIcons.shoppingBag,
-      label: 'Orders',
-    ),
-    BottomNavItem(
-      icon: Icons.person_outline,
-      activeIcon: Icons.person,
-      label: 'Profile',
-    ),
-  ];
-
-  // --- Updated onTap with Provider Sync ---
-  void _onNavTap(int index) {
-    setState(() => _currentIndex = index);
-
-    ref.read(consumerNavIndexProvider.notifier).state = index;
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return PopScope(
       canPop: false, // block automatic popping
       onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return; // system already popped, do nothing
+        if (didPop) return;
 
         final confirm = await showDialog<bool>(
           context: context,
@@ -121,15 +101,20 @@ class _ConsumerNavPageState extends ConsumerState<ConsumerNavPage> {
           child: const Icon(Icons.chat_bubble_outline),
         ),
 
+        // 2. Pass the provider value to the Stack
         body: FadeIndexedStack(
-          index: _currentIndex,
-          children: _pages,
+          index: currentIndex,
+          children: pages,
         ),
 
+        // 3. Pass the provider value to the Bar
         bottomNavigationBar: CustomBottomNavBar(
-          currentIndex: _currentIndex,
-          onTap: _onNavTap,
-          items: _navItems
+          currentIndex: currentIndex,
+          onTap: (index) {
+            // 4. Update the provider. ref.watch triggers the rebuild above.
+            ref.read(consumerNavIndexProvider.notifier).state = index;
+          },
+          items: navItems
               .map(
                 (item) => BottomNavigationBarItem(
                   icon: Icon(item.icon),

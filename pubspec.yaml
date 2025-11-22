@@ -39,6 +39,7 @@ dependencies:
   riverpod: ^3.0.3
   rxdart: ^0.28.0
   shared_preferences: ^2.5.3
+  shimmer: ^3.0.0
   smooth_page_indicator: ^1.2.1
   supabase_flutter: ^2.10.3
   url_launcher: ^6.3.2

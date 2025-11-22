@@ -6,7 +6,9 @@ import 'package:locally/common/providers/consumer_profile_provider.dart';
 import 'package:locally/common/providers/retail_search_provider.dart';
 import 'package:locally/common/services/search/retail_search_service.dart';
 
-// 1. State Notifier to manage the Filters (Query, Category, etc.)
+// -----------------------------------------------------------------------------
+// 1. Filter Notifier (Unchanged)
+// -----------------------------------------------------------------------------
 class SearchFilterNotifier extends StateNotifier<SearchFilters> {
   SearchFilterNotifier() : super(const SearchFilters());
 
@@ -14,7 +16,7 @@ class SearchFilterNotifier extends StateNotifier<SearchFilters> {
   
   void setCategory(ProductCategories? category) => 
       state = category == state.category 
-          ? SearchFilters(query: state.query, sortBy: state.sortBy) // Toggle off
+          ? SearchFilters(query: state.query, sortBy: state.sortBy)
           : state.copyWith(category: category);
 
   void setPriceRange(double? min, double? max) => 
@@ -30,34 +32,122 @@ final searchFilterProvider =
   return SearchFilterNotifier();
 });
 
-// 2. The Search Results Provider
-// This watches the filter state AND the user profile (for location)
-// and triggers the search service automatically.
-final searchResultsProvider = FutureProvider.autoDispose<List<RetailProduct>>((ref) async {
-  final filters = ref.watch(searchFilterProvider);
-  final searchService = ref.watch(retailSearchServiceProvider);
-  
-  // Get User Location for "Nearest" sort
-  final userProfile = ref.watch(currentConsumerProfileProvider).value;
+// -----------------------------------------------------------------------------
+// 2. Pagination Notifier (New Implementation)
+// -----------------------------------------------------------------------------
 
-  // If user wants nearest but has no location, fallback to relevance
-  var sortOption = filters.sortBy;
-  if (sortOption == SearchSortOption.nearest) {
-    if (userProfile?.latitude == null || userProfile?.longitude == null) {
-      sortOption = SearchSortOption.relevance;
+class SearchResultsNotifier extends StateNotifier<AsyncValue<List<RetailProduct>>> {
+  final RetailSearchService _searchService;
+  final SearchFilters _filters;
+  final double? _userLat;
+  final double? _userLon;
+  
+  // Pagination State
+  int _offset = 0;
+  final int _limit = 20; // Matches the default in your SQL
+  bool _hasMore = true;
+  bool _isLoadingNext = false;
+
+  SearchResultsNotifier({
+    required RetailSearchService searchService,
+    required SearchFilters filters,
+    double? userLat,
+    double? userLon,
+  })  : _searchService = searchService,
+        _filters = filters,
+        _userLat = userLat,
+        _userLon = userLon,
+        super(const AsyncValue.loading()) {
+    // Fetch first page immediately upon creation
+    fetchFirstPage();
+  }
+
+  // Used for the initial load (and when filters change)
+  Future<void> fetchFirstPage() async {
+    state = const AsyncValue.loading();
+    _offset = 0;
+    _hasMore = true;
+
+    try {
+      final products = await _performSearch(offset: 0);
+      if (mounted) {
+        // If we got fewer items than the limit, we've reached the end
+        if (products.length < _limit) _hasMore = false;
+        state = AsyncValue.data(products);
+      }
+    } catch (e, st) {
+      if (mounted) state = AsyncValue.error(e, st);
     }
   }
 
-  // Debounce simple text queries if needed, or rely on UI submission
-  // Here we fetch immediately on change
-  return searchService.searchProducts(
-    query: filters.query,
-    minPrice: filters.minPrice,
-    maxPrice: filters.maxPrice,
-    category: filters.category,
-    minRating: filters.minRating,
+  // Used for Infinite Scroll
+  Future<void> fetchNextPage() async {
+    // Prevent multiple calls or calls when no data left
+    if (_isLoadingNext || !_hasMore || state.value == null) return;
+
+    _isLoadingNext = true;
+    
+    try {
+      // Calculate next offset
+      _offset += _limit;
+      
+      final newProducts = await _performSearch(offset: _offset);
+      
+      if (newProducts.length < _limit) _hasMore = false;
+
+      if (mounted) {
+        // Append new products to the existing list
+        final currentList = state.value!;
+        state = AsyncValue.data([...currentList, ...newProducts]);
+      }
+    } catch (e) {
+      // If pagination fails, we usually just don't load more, 
+      // or show a snackbar, rather than replacing the whole screen with Error.
+      // We decrease the offset so they can try again.
+      _offset -= _limit; 
+    } finally {
+      _isLoadingNext = false;
+    }
+  }
+
+  Future<List<RetailProduct>> _performSearch({required int offset}) {
+    // Determine Sort Option logic (fallback to relevance if location missing for nearest)
+    var sortOption = _filters.sortBy;
+    if (sortOption == SearchSortOption.nearest) {
+      if (_userLat == null || _userLon == null) {
+        sortOption = SearchSortOption.relevance;
+      }
+    }
+
+    return _searchService.searchProducts(
+      query: _filters.query,
+      minPrice: _filters.minPrice,
+      maxPrice: _filters.maxPrice,
+      category: _filters.category,
+      minRating: _filters.minRating,
+      userLat: _userLat,
+      userLon: _userLon,
+      sortBy: sortOption,
+      limit: _limit,
+      offset: offset,
+    );
+  }
+  
+  bool get hasMore => _hasMore;
+}
+
+// The Provider
+final searchResultsProvider = StateNotifierProvider.autoDispose<SearchResultsNotifier, AsyncValue<List<RetailProduct>>>((ref) {
+  final filters = ref.watch(searchFilterProvider);
+  final searchService = ref.watch(retailSearchServiceProvider);
+  final userProfile = ref.watch(currentConsumerProfileProvider).value;
+
+  // Whenever filters change, this provider is re-built, 
+  // creating a new Notifier which calls fetchFirstPage() automatically.
+  return SearchResultsNotifier(
+    searchService: searchService,
+    filters: filters,
     userLat: userProfile?.latitude,
     userLon: userProfile?.longitude,
-    sortBy: sortOption,
   );
 });
