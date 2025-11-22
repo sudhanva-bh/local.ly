@@ -40,7 +40,7 @@ class ViewSellerBody extends ConsumerWidget {
         seller.latitude != null &&
         seller.longitude != null &&
         seller.address != null;
-    final productCount = seller.productIds?.length ?? 0;
+    // final productCount = seller.productIds?.length ?? 0;
 
     // Consistent card shape
     final cardShape = RoundedRectangleBorder(
@@ -55,6 +55,7 @@ class ViewSellerBody extends ConsumerWidget {
     return RefreshIndicator(
       // Allow pull-to-refresh to get latest seller data
       onRefresh: () async {
+        // ignore: unused_result
         await ref.refresh(getProfileByIdProvider(seller.uid).future);
         // Also refresh the product list stream if needed (streams usually auto-update, but good practice)
         ref.invalidate(productsBySellerIdProvider(seller.uid));
