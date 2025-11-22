@@ -9,7 +9,7 @@ import 'package:locally/common/models/users/seller_model.dart';
 import 'package:locally/features/auth/controllers/auth_controller.dart';
 import 'package:locally/common/widgets/location_picker.dart';
 import 'package:locally/features/retail_seller/profile_page/controllers/profile_controller.dart';
-import 'package:locally/features/welcome/pages/welcome_screen.dart';
+// import 'package:locally/features/welcome/pages/welcome_screen.dart';
 import 'editable_info_tile.dart';
 import 'shop_location_map.dart';
 
@@ -342,18 +342,19 @@ class ProfileBody extends ConsumerWidget {
                             .signOut();
                       },
                     ),
-                    const SizedBox(height: 12),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.delete_forever),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colors.errorContainer,
-                        foregroundColor: colors.onErrorContainer,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      label: const Text('Delete Account'),
-                      onPressed: () =>
-                          _confirmDeleteProfile(context, ref, seller.uid),
-                    ),
+                    // const SizedBox(height: 12),
+                    // ElevatedButton.icon(
+                      
+                    //   icon: const Icon(Icons.delete_forever),
+                    //   style: ElevatedButton.styleFrom(
+                    //     backgroundColor: colors.errorContainer,
+                    //     foregroundColor: colors.onErrorContainer,
+                    //     padding: const EdgeInsets.symmetric(vertical: 12),
+                    //   ),
+                    //   label: const Text('Delete Account'),
+                    //   onPressed: () =>
+                    //       _confirmDeleteProfile(context, ref, seller.uid),
+                    // ),
                   ],
                 ),
             ],
@@ -376,106 +377,106 @@ class ProfileBody extends ConsumerWidget {
     }
   }
 
-  Future<void> _confirmDeleteProfile(
-    BuildContext context,
-    WidgetRef ref,
-    String sellerId,
-  ) async {
-    // ... (This method remains unchanged)
-    final controller = TextEditingController();
-    final focusNode = FocusNode();
-    bool confirmed = false;
+  // Future<void> _confirmDeleteProfile(
+  //   BuildContext context,
+  //   WidgetRef ref,
+  //   String sellerId,
+  // ) async {
+  //   // ... (This method remains unchanged)
+  //   final controller = TextEditingController();
+  //   final focusNode = FocusNode();
+  //   bool confirmed = false;
 
-    await showDialog(
-      context: context,
-      barrierDismissible: false, // user must explicitly act
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text(
-            "Delete Profile",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.redAccent,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "This action cannot be undone.\n\n"
-                "To confirm, please type DELETE below:",
-                style: TextStyle(fontSize: 15),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: controller,
-                focusNode: focusNode,
-                autofocus: true,
-                textAlign: TextAlign.center,
-                decoration: InputDecoration(
-                  hintText: "Type DELETE",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onChanged: (val) {
-                  confirmed = val.trim().toUpperCase() == "DELETE";
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.delete_forever),
-              label: const Text("Confirm Delete"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                if (confirmed) {
-                  Navigator.pop(context, true);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Please type DELETE exactly to confirm."),
-                      backgroundColor: Colors.redAccent,
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
-        );
-      },
-    ).then((value) async {
-      if (value == true) {
-        await ref
-            .read(profileControllerProvider.notifier)
-            .deleteProfile(sellerId);
+  //   await showDialog(
+  //     context: context,
+  //     barrierDismissible: false, // user must explicitly act
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(16),
+  //         ),
+  //         title: const Text(
+  //           "Delete Profile",
+  //           style: TextStyle(
+  //             fontWeight: FontWeight.bold,
+  //             color: Colors.redAccent,
+  //           ),
+  //         ),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             const Text(
+  //               "This action cannot be undone.\n\n"
+  //               "To confirm, please type DELETE below:",
+  //               style: TextStyle(fontSize: 15),
+  //             ),
+  //             const SizedBox(height: 20),
+  //             TextField(
+  //               controller: controller,
+  //               focusNode: focusNode,
+  //               autofocus: true,
+  //               textAlign: TextAlign.center,
+  //               decoration: InputDecoration(
+  //                 hintText: "Type DELETE",
+  //                 border: OutlineInputBorder(
+  //                   borderRadius: BorderRadius.circular(12),
+  //                 ),
+  //               ),
+  //               onChanged: (val) {
+  //                 confirmed = val.trim().toUpperCase() == "DELETE";
+  //               },
+  //             ),
+  //           ],
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context),
+  //             child: const Text("Cancel"),
+  //           ),
+  //           ElevatedButton.icon(
+  //             icon: const Icon(Icons.delete_forever),
+  //             label: const Text("Confirm Delete"),
+  //             style: ElevatedButton.styleFrom(
+  //               backgroundColor: Colors.redAccent,
+  //               foregroundColor: Colors.white,
+  //             ),
+  //             onPressed: () {
+  //               if (confirmed) {
+  //                 Navigator.pop(context, true);
+  //               } else {
+  //                 ScaffoldMessenger.of(context).showSnackBar(
+  //                   const SnackBar(
+  //                     content: Text("Please type DELETE exactly to confirm."),
+  //                     backgroundColor: Colors.redAccent,
+  //                   ),
+  //                 );
+  //               }
+  //             },
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   ).then((value) async {
+  //     if (value == true) {
+  //       await ref
+  //           .read(profileControllerProvider.notifier)
+  //           .deleteProfile(sellerId);
 
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Profile deleted successfully."),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => WelcomeScreen()),
-          );
-        }
-      }
-    });
-  }
+  //       if (context.mounted) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(
+  //             content: Text("Profile deleted successfully."),
+  //             backgroundColor: Colors.redAccent,
+  //           ),
+  //         );
+  //         Navigator.pushReplacement(
+  //           context,
+  //           MaterialPageRoute(builder: (context) => WelcomeScreen()),
+  //         );
+  //       }
+  //     }
+  //   });
+  // }
 
   Future<void> _editField(
     BuildContext context, {
