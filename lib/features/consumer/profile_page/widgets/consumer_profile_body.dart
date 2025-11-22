@@ -10,7 +10,6 @@ import 'package:locally/common/widgets/location_picker.dart';
 import 'package:locally/features/consumer/profile_page/controllers/consumer_profile_controller.dart';
 import 'package:locally/features/consumer/profile_page/widgets/consumer_location_map.dart';
 import 'package:locally/features/retail_seller/profile_page/widgets/editable_info_tile.dart';
-import 'package:locally/features/welcome/pages/welcome_screen.dart';
 
 class ConsumerProfileBody extends ConsumerWidget {
   final ConsumerModel consumer;
@@ -278,17 +277,6 @@ class ConsumerProfileBody extends ConsumerWidget {
                             .signOut();
                       },
                     ),
-                    const SizedBox(height: 12),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.delete_forever),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colors.errorContainer,
-                        foregroundColor: colors.onErrorContainer,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      label: const Text('Delete Account'),
-                      onPressed: () => _confirmDeleteProfile(context, ref),
-                    ),
                   ],
                 ),
             ],
@@ -307,105 +295,6 @@ class ConsumerProfileBody extends ConsumerWidget {
     } catch (e) {
       return date.toIso8601String();
     }
-  }
-
-  Future<void> _confirmDeleteProfile(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final controller = TextEditingController();
-    final focusNode = FocusNode();
-    bool confirmed = false;
-
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text(
-            "Delete Profile",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.redAccent,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "This action cannot be undone.\n\n"
-                "To confirm, please type DELETE below:",
-                style: TextStyle(fontSize: 15),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: controller,
-                focusNode: focusNode,
-                autofocus: true,
-                textAlign: TextAlign.center,
-                decoration: InputDecoration(
-                  hintText: "Type DELETE",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onChanged: (val) {
-                  confirmed = val.trim().toUpperCase() == "DELETE";
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.delete_forever),
-              label: const Text("Confirm Delete"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                if (confirmed) {
-                  Navigator.pop(context, true);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Please type DELETE exactly to confirm."),
-                      backgroundColor: Colors.redAccent,
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
-        );
-      },
-    ).then((value) async {
-      if (value == true) {
-        await ref
-            .read(consumerProfileControllerProvider.notifier)
-            .deleteProfile();
-
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Profile deleted successfully."),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => WelcomeScreen()),
-          );
-        }
-      }
-    });
   }
 
   Future<void> _editField(

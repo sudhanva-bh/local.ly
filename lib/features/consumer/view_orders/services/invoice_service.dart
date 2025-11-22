@@ -4,22 +4,24 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:locally/common/models/orders/consumer_order_model.dart';
 
+// ---- IST Converter ----
+DateTime toIST(DateTime utcTime) {
+  return utcTime.toUtc().add(const Duration(hours: 5, minutes: 30));
+}
+
 class InvoiceService {
-  /// Generates the PDF and opens the native share/print dialog
   static Future<void> generateAndOpenInvoice(OrderModel order) async {
     final doc = pw.Document();
 
-    // Load a font that supports the Rupee symbol (e.g., Roboto or Noto Sans)
-    // Using PdfGoogleFonts requires internet on first run to cache the font.
     final fontRegular = await PdfGoogleFonts.notoSansRegular();
     final fontBold = await PdfGoogleFonts.notoSansBold();
 
-    // Formatters
     final currencyFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 2);
     final dateFormat = DateFormat('MMM dd, yyyy');
     final timeFormat = DateFormat('hh:mm a');
 
-    // Company Info (Static for now, replace with real app data)
+    final istCreatedAt = toIST(order.createdAt);
+
     const companyName = "Locally";
     const companyAddress =
         "BITS Pilani Hyderabad Campus\nShamirpet\nHyderabad 500078";
@@ -39,12 +41,10 @@ class InvoiceService {
         build: (context) => [
           pw.SizedBox(height: 20),
 
-          // Order Info & Customer Info Row
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              // Invoice Details
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
@@ -61,12 +61,12 @@ class InvoiceService {
                     "Invoice #",
                     order.id.substring(0, 8).toUpperCase(),
                   ),
-                  _buildKeyValue("Date", dateFormat.format(order.createdAt)),
-                  _buildKeyValue("Time", timeFormat.format(order.createdAt)),
+                  _buildKeyValue("Date", dateFormat.format(istCreatedAt)),
+                  _buildKeyValue("Time", timeFormat.format(istCreatedAt)),
                   _buildKeyValue("Status", order.status.name.toUpperCase()),
                 ],
               ),
-              // Bill To
+
               pw.ConstrainedBox(
                 constraints: const pw.BoxConstraints(maxWidth: 200),
                 child: pw.Column(
@@ -92,7 +92,6 @@ class InvoiceService {
 
           pw.SizedBox(height: 30),
 
-          // Items Table
           pw.TableHelper.fromTextArray(
             context: context,
             border: null,
@@ -126,7 +125,6 @@ class InvoiceService {
 
           pw.Divider(color: PdfColors.grey300),
 
-          // Totals
           pw.Container(
             alignment: pw.Alignment.centerRight,
             child: pw.Column(
@@ -135,7 +133,7 @@ class InvoiceService {
                 _buildTotalRow(
                   "Subtotal",
                   currencyFormat.format(order.totalAmount),
-                ), // Assuming totalAmount is subtotal for now
+                ),
                 _buildTotalRow(
                   "Delivery Fee",
                   "Free",
@@ -158,7 +156,6 @@ class InvoiceService {
 
           pw.SizedBox(height: 20),
 
-          // Terms / Notes
           pw.Container(
             padding: const pw.EdgeInsets.all(10),
             decoration: pw.BoxDecoration(
@@ -174,14 +171,13 @@ class InvoiceService {
       ),
     );
 
-    // Open the preview/share sheet
     await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => doc.save(),
+      onLayout: (format) async => doc.save(),
       name: 'Invoice_${order.id.substring(0, 8)}.pdf',
     );
   }
 
-  // --- Helper Widgets for PDF ---
+  // ------------------ Helpers ------------------
 
   static pw.Widget _buildHeader(
     pw.Context context,
@@ -193,7 +189,6 @@ class InvoiceService {
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            // You can load an image logo here if you have one
             pw.Text(
               name.toUpperCase(),
               style: pw.TextStyle(
@@ -220,7 +215,8 @@ class InvoiceService {
         pw.Divider(color: PdfColors.grey300),
         pw.Center(
           child: pw.Text(
-            "Registered Office: $email | Generated on ${DateFormat('MMM dd, yyyy').format(DateTime.now())}",
+            "Registered Office: $email | Generated on "
+            "${DateFormat('MMM dd, yyyy').format(toIST(DateTime.now()))}",
             style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500),
           ),
         ),
@@ -236,7 +232,10 @@ class InvoiceService {
           children: [
             pw.TextSpan(
               text: "$key: ",
-              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+              style: pw.TextStyle(
+                fontWeight: pw.FontWeight.bold,
+                fontSize: 10,
+              ),
             ),
             pw.TextSpan(text: value, style: const pw.TextStyle(fontSize: 10)),
           ],

@@ -44,8 +44,9 @@ class WholesaleRetailOrderService {
         final quantity = item['quantity'] as int;
 
         // Fetch the wholesale product by ID
-        final wholesaleProduct =
-            await _wholesaleService.streamProductById(productId).first;
+        final wholesaleProduct = await _wholesaleService
+            .streamProductById(productId)
+            .first;
 
         if (wholesaleProduct == null) {
           return Left('Product $productId does not exist.');
@@ -59,8 +60,9 @@ class WholesaleRetailOrderService {
         }
 
         // Update wholesale stock
-        await _wholesaleService
-            .updateProduct(wholesaleProduct.copyWith(stock: newStock));
+        await _wholesaleService.updateProduct(
+          wholesaleProduct.copyWith(stock: newStock),
+        );
 
         // Optional: Update retail stock if this wholesale product is linked to retail products
         final retailProducts = await _retailService
@@ -72,8 +74,9 @@ class WholesaleRetailOrderService {
         );
 
         if (matchingRetailProduct != null) {
-          final newRetailStock =
-              (matchingRetailProduct.stock - quantity).clamp(0, double.infinity).toInt();
+          final newRetailStock = (matchingRetailProduct.stock - quantity)
+              .clamp(0, double.infinity)
+              .toInt();
           await _retailService.updateProduct(
             matchingRetailProduct.copyWith(stock: newRetailStock),
           );
@@ -103,24 +106,30 @@ class WholesaleRetailOrderService {
 
   /// Stream orders for a retail seller
   Stream<List<WholesaleRetailOrder>> streamOrdersForRetailer(
-      String retailSellerId) {
+    String retailSellerId,
+  ) {
     return _supabase
         .from(_tableName)
         .stream(primaryKey: ['order_id'])
         .eq('retail_seller_id', retailSellerId)
-        .map((data) =>
-            data.map((json) => WholesaleRetailOrder.fromMap(json)).toList());
+        .map(
+          (data) =>
+              data.map((json) => WholesaleRetailOrder.fromMap(json)).toList(),
+        );
   }
 
   /// Stream orders for a wholesale shop
   Stream<List<WholesaleRetailOrder>> streamOrdersForWholesaleShop(
-      String wholesaleShopId) {
+    String wholesaleShopId,
+  ) {
     return _supabase
         .from(_tableName)
         .stream(primaryKey: ['order_id'])
         .eq('wholesale_shop_id', wholesaleShopId)
-        .map((data) =>
-            data.map((json) => WholesaleRetailOrder.fromMap(json)).toList());
+        .map(
+          (data) =>
+              data.map((json) => WholesaleRetailOrder.fromMap(json)).toList(),
+        );
   }
 
   /// Stream a single order by ID
@@ -129,8 +138,10 @@ class WholesaleRetailOrderService {
         .from(_tableName)
         .stream(primaryKey: ['order_id'])
         .eq('order_id', orderId)
-        .map((data) =>
-            data.isEmpty ? null : WholesaleRetailOrder.fromMap(data.first));
+        .map(
+          (data) =>
+              data.isEmpty ? null : WholesaleRetailOrder.fromMap(data.first),
+        );
   }
 
   /// Delete an order
@@ -157,16 +168,18 @@ class WholesaleRetailOrderService {
   ) async {
     try {
       // 1. Get all existing products for this retailer
-      final existingRetailProducts =
-          await _retailService.getProductsBySeller(order.retailSellerId).first;
+      final existingRetailProducts = await _retailService
+          .getProductsBySeller(order.retailSellerId)
+          .first;
 
       for (final item in order.items) {
         final productId = item['productId'] as String;
         final quantity = item['quantity'] as int;
 
         // 2. Get the source wholesale product details
-        final wholesaleProduct =
-            await _wholesaleService.streamProductById(productId).first;
+        final wholesaleProduct = await _wholesaleService
+            .streamProductById(productId)
+            .first;
 
         if (wholesaleProduct == null) {
           // Skip if the source product doesn't exist (or log error)
@@ -217,11 +230,13 @@ class WholesaleRetailOrderService {
 
   /// Helper to parse category string to ProductCategories enum
   ProductCategories _parseCategory(dynamic v) {
-    if (v == null) return ProductCategories.tech; // Default
-    final name = v.toString();
+    if (v == null) return ProductCategories.tech; // default
+
+    final input = v.toString().toLowerCase();
+
     return ProductCategories.values.firstWhere(
-      (e) => e.name == name,
-      orElse: () => ProductCategories.tech, // Default
+      (e) => e.name.toLowerCase() == input,
+      orElse: () => ProductCategories.tech,
     );
   }
 }

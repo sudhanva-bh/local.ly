@@ -173,9 +173,13 @@ class _AccountTypeButtonState extends State<AccountTypeButton>
         );
       case AccountType.consumer:
         // Using a standard icon for Consumer since path wasn't provided
-        return Icon(
-          Icons.shopping_bag_outlined,
-          color: Colors.white,
+        return Image.network(
+          "https://www.rawshorts.com/freeicons/wp-content/uploads/2017/01/blue_shoppictbasket_1484336511-1.png",
+          fit: BoxFit.contain,
+          errorBuilder: (c, e, s) => Icon(
+            Icons.warehouse,
+            color: widget.isSelected ? colors.primary : Colors.white,
+          ),
         );
     }
   }

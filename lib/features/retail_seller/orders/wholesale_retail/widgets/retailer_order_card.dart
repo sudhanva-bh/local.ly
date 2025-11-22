@@ -1,6 +1,5 @@
 // --- Make sure to add these imports ---
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:locally/common/models/products/wholesale_product_model.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
 // Import OrderDetailPage (path from example)
 
@@ -10,10 +9,8 @@ import 'package:locally/common/models/orders/order_model.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/widgets/order/order_details.dart';
 
-// ✅ 1. Converted to a ConsumerWidget
 class RetailOrderCard extends ConsumerWidget {
   final WholesaleRetailOrder order;
-  // ✅ 2. Added onUpdateStatus parameter
   final Function(String newStatus) onUpdateStatus;
 
   const RetailOrderCard({
@@ -23,20 +20,15 @@ class RetailOrderCard extends ConsumerWidget {
   });
 
   @override
-  // ✅ 3. Added WidgetRef ref
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
 
-    // 4. Get the productId from the first item
     final String? productId = (order.items.isNotEmpty)
-        // ⚠️ ASSUMPTION: The key is 'productId'.
-        // If your key is 'product_id', change this line.
         ? order.items.first['productId'] as String?
         : null;
 
-    // 5. If no ID, build with fallback data immediately
     if (productId == null) {
-      return _buildCard(
+      return _buildStyledCard(
         context,
         ref,
         textTheme: textTheme,
@@ -49,26 +41,17 @@ class RetailOrderCard extends ConsumerWidget {
       );
     }
 
-    // 6. If ID exists, watch the provider
-    // (Using wholesale provider as the item is a wholesale item)
-    final AsyncValue<WholesaleProduct?> productAsync = ref.watch(
-      wholesaleProductByIdProvider(productId),
-    );
+    final productAsync = ref.watch(wholesaleProductByIdProvider(productId));
 
-    // 7. Use .when to build the card based on the state
     return productAsync.when(
       data: (product) {
-        // Use product name or fallback to Order ID
-        // ✅ Corrected to use 'name' which is likely in your model
-        final String title =
-            product?.productName ?? 'Order ID: ${order.orderId}';
-        // Get first image URL or null
+        final title = product?.productName ?? 'Order ID: ${order.orderId}';
         final String? imageUrl =
             (product != null && product.imageUrls.isNotEmpty)
             ? product.imageUrls.first
             : null;
 
-        return _buildCard(
+        return _buildStyledCard(
           context,
           ref,
           textTheme: textTheme,
@@ -77,8 +60,7 @@ class RetailOrderCard extends ConsumerWidget {
         );
       },
       loading: () {
-        // Show a loading state in the card
-        return _buildCard(
+        return _buildStyledCard(
           context,
           ref,
           textTheme: textTheme,
@@ -86,21 +68,20 @@ class RetailOrderCard extends ConsumerWidget {
           leading: Container(
             width: 48,
             height: 48,
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(12),
             child: const CircularProgressIndicator.adaptive(strokeWidth: 2),
           ),
         );
       },
-      error: (err, stack) {
-        // Show an error state in the card
-        return _buildCard(
+      error: (_, __) {
+        return _buildStyledCard(
           context,
           ref,
           textTheme: textTheme,
           title: 'Error loading product',
           leading: Icon(
             Icons.receipt_long,
-            color: context.colors.error, // Use error color
+            color: context.colors.error,
             size: 40,
           ),
         );
@@ -108,118 +89,176 @@ class RetailOrderCard extends ConsumerWidget {
     );
   }
 
-  /// Helper to build the main Card structure
-  Widget _buildCard(
+  // =====================================================================
+  // 🔥 Styled card (same style as SellerOrderCard)
+  // =====================================================================
+  Widget _buildStyledCard(
     BuildContext context,
     WidgetRef ref, {
     required TextTheme textTheme,
     required String title,
     required Widget leading,
   }) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: ListTile(
-        isThreeLine: true,
-        leading: leading,
-        // ✅ TITLE: Shows Product Name (or fallback)
-        title: Text(
-          title,
-          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        // ✅ SUBTITLE: Shows Total and Date
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Total: \$${order.totalAmount.toStringAsFixed(2)}'),
-            Text('Date: ${DateFormat.yMd().format(order.createdAt)}'),
-          ],
-        ),
-        // ✅ TRAILING: Updated to include Chip and Update Button
-        // _orderStatuses = [
-        //   'Pending',
-        //   'Confirmed',
-        //   'Shipped',
-        //   'Delivered',
-        //   'Received',
-        // ];
-        trailing: SizedBox(
-          width: 120,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Chip(
-                label: Text(order.status),
-                backgroundColor: order.status == "Received"
-                    ? Colors.green
-                    : order.status == "Delivered"
-                    ? context.colors.primary
-                    : context.colors.surfaceDim,
-                labelPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 2,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceDim,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => OrderDetailPage(
+                  orderId: order.orderId,
+                  isWholesaleSeller: false,
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24), // 👈 Rounded chips
-                  side: BorderSide(color: Colors.transparent),
-                ),
-                visualDensity: VisualDensity.compact, // Makes chip smaller
               ),
-            ],
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // LEFT IMAGE
+                leading,
+
+                const SizedBox(width: 16),
+
+                // RIGHT SIDE CONTENT
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title
+                      Text(
+                        title,
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      Text(
+                        "Total: ₹${order.totalAmount.toStringAsFixed(2)}",
+                        style: textTheme.bodyMedium,
+                      ),
+
+                      Text(
+                        "Date: ${DateFormat.yMd().format(order.createdAt)}",
+                        style: textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+
+                // TRAILING STATUS CHIP
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _chipColor(order.status, context).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _chipColor(order.status, context).withOpacity(0.2),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: _chipColor(order.status, context),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        order.status,
+                        style: context.text.labelSmall?.copyWith(
+                          color: _chipColor(order.status, context),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        onTap: () {
-          // ✅ Fixed navigation
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => OrderDetailPage(
-                orderId: order.orderId,
-                isWholesaleSeller: false,
-              ),
-            ),
+      ),
+    );
+  }
+
+  // =====================================================================
+  // LEADING IMAGE (unchanged)
+  // =====================================================================
+  Widget _buildLeadingImage(BuildContext context, String? imageUrl) {
+    if (imageUrl == null) {
+      return Icon(Icons.receipt_long, color: context.colors.primary, size: 40);
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.network(
+        imageUrl,
+        width: 48,
+        height: 48,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Icon(
+          Icons.receipt_long,
+          color: context.colors.primary,
+          size: 40,
+        ),
+        loadingBuilder: (_, child, loading) {
+          if (loading == null) return child;
+          return Container(
+            width: 48,
+            height: 48,
+            padding: const EdgeInsets.all(12),
+            child: const CircularProgressIndicator.adaptive(strokeWidth: 2),
           );
         },
       ),
     );
   }
 
-  /// Helper just for building the leading image, with fallbacks
-  Widget _buildLeadingImage(BuildContext context, String? imageUrl) {
-    // Fallback to icon if no image URL
-    if (imageUrl == null) {
-      return Icon(
-        Icons.receipt_long,
-        color: context.colors.primary,
-        size: 40,
-      );
+  Color _chipColor(String status, BuildContext context) {
+    switch (status.toLowerCase()) {
+      case "received":
+        return Colors.green;
+      case "delivered":
+        return Colors.green;
+      case "pending":
+        return context.colors.onSurface;
+      case "accepted":
+        return context.colors.onSurface;
+      case "shipped":
+        return context.colors.onSurface;
+      case "cancelled":
+        return context.colors.error;
+      default:
+        return context.colors.onSurface;
     }
-
-    // Build Image.network if URL exists
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8.0),
-      child: Image.network(
-        imageUrl,
-        width: 48,
-        height: 48,
-        fit: BoxFit.cover,
-        // Fallback for network error
-        errorBuilder: (context, _, __) => Icon(
-          Icons.receipt_long,
-          color: context.colors.primary,
-          size: 40,
-        ),
-        // Show a loader while image downloads
-        loadingBuilder: (context, child, progress) {
-          if (progress == null) return child;
-          return Container(
-            width: 48,
-            height: 48,
-            padding: const EdgeInsets.all(12.0),
-            child: CircularProgressIndicator.adaptive(strokeWidth: 2),
-          );
-        },
-      ),
-    );
   }
 }

@@ -21,19 +21,19 @@ class OrderExpandableCard extends StatelessWidget {
     ).format(order.totalAmount);
 
     return Card(
-      elevation: 0,
-      color: context.colors.surfaceContainerLow,
+      elevation: 6,
+      shadowColor: Colors.black.withOpacity(0.12),
+      color: context.colors.surfaceDim,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: context.colors.outlineVariant.withOpacity(0.5)),
       ),
       clipBehavior: Clip.antiAlias,
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: Border.all(color: Colors.transparent),
-          collapsedShape: Border.all(color: Colors.transparent),
+          shape: const RoundedRectangleBorder(),
+          collapsedShape: const RoundedRectangleBorder(),
 
           // Header
           title: Row(

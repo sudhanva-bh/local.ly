@@ -4,9 +4,8 @@ import 'package:locally/common/providers/inventory_service_provider.dart';
 import 'package:locally/common/providers/profile_provider.dart';
 import 'package:locally/common/services/chat/chat_service.dart';
 import 'package:locally/features/chat/pages/retailer_chat_list_page.dart';
-import 'package:locally/features/wholesale_seller/home/presentation/widgets/action.dart';
-import 'package:locally/features/wholesale_seller/home/presentation/widgets/alert_card.dart';
-import 'package:locally/features/wholesale_seller/home/presentation/widgets/rating_summary.dart';
+import 'package:locally/features/wholesale_seller/home/widgets/action.dart';
+import 'package:locally/features/wholesale_seller/home/widgets/alert_card.dart';
 import 'package:locally/features/wholesale_seller/wholesale_nav_page.dart';
 
 class HomePage extends ConsumerWidget {
@@ -242,15 +241,13 @@ class HomePage extends ConsumerWidget {
                           child: DashboardActionCard(
                             icon: Icons.inventory_2_rounded,
                             title: 'Manage Products',
-                            onTap: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const WholesaleNavPage(initialIndex: 1),
-                                ),
-                              );
-                            },
+                            onTap: () =>
+                                ref
+                                        .read(
+                                          wholesaleNavIndexProvider.notifier,
+                                        )
+                                        .state =
+                                    1,
                           ),
                         ),
                         const SizedBox(width: 16), // Spacing between cards
@@ -258,42 +255,20 @@ class HomePage extends ConsumerWidget {
                           child: DashboardActionCard(
                             icon: Icons.receipt_long_rounded,
                             title: 'View Orders',
-                            onTap: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const WholesaleNavPage(initialIndex: 3),
-                                ),
-                              );
-                            },
+                            onTap: () =>
+                                ref
+                                        .read(
+                                          wholesaleNavIndexProvider.notifier,
+                                        )
+                                        .state =
+                                    3,
                           ),
                         ),
                       ],
                     ),
-
-                    const SizedBox(height: 20), // Add bottom spacing if needed
-                    Text(
-                      'Seller Rating',
-                      style: textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    SizedBox(
+                      height: 120,
                     ),
-                    const SizedBox(height: 20),
-                    const RatingSummaryCard(
-                      rating: 4.8,
-                      reviewCount: 124,
-                    ),
-
-                    // --- Recent Orders Section ---
-                    const SizedBox(height: 52),
-                    Text(
-                      'Order History',
-                      style: textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Padding(padding: EdgeInsets.all(50)),
                   ],
                 ),
               ),

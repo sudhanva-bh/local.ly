@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:locally/common/widgets/bottom_navigator.dart';
 import 'package:locally/features/chat/pages/consumer_chat_list_page.dart';
-import 'package:locally/features/consumer/cart/cart_page.dart';
+import 'package:locally/features/consumer/cart/pages/cart_page.dart';
 import 'package:locally/features/consumer/order/pages/consumer_order_screen.dart';
 import 'package:locally/features/consumer/profile_page/pages/consumer_profile_page.dart';
 import 'package:locally/features/consumer/view_orders/pages/consumer_orders_page.dart';
@@ -80,38 +80,67 @@ class _ConsumerNavPageState extends ConsumerState<ConsumerNavPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
+    return PopScope(
+      canPop: false, // block automatic popping
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return; // system already popped, do nothing
 
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ConsumerChatListPage()),
-          );
-        },
-        child: const Icon(Icons.chat_bubble_outline),
-      ),
-
-      body: FadeIndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
-
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: _onNavTap,
-        items: _navItems
-            .map(
-              (item) => BottomNavigationBarItem(
-                icon: Icon(item.icon),
-                activeIcon: item.activeIcon != null
-                    ? Icon(item.activeIcon)
-                    : Icon(item.icon),
-                label: item.label,
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Exit App?'),
+            content: const Text('Do you want to close the app?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('No'),
               ),
-            )
-            .toList(),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Yes'),
+              ),
+            ],
+          ),
+        );
+        if (!context.mounted) return;
+
+        if (confirm == true) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        extendBody: true,
+
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ConsumerChatListPage()),
+            );
+          },
+          child: const Icon(Icons.chat_bubble_outline),
+        ),
+
+        body: FadeIndexedStack(
+          index: _currentIndex,
+          children: _pages,
+        ),
+
+        bottomNavigationBar: CustomBottomNavBar(
+          currentIndex: _currentIndex,
+          onTap: _onNavTap,
+          items: _navItems
+              .map(
+                (item) => BottomNavigationBarItem(
+                  icon: Icon(item.icon),
+                  activeIcon: item.activeIcon != null
+                      ? Icon(item.activeIcon)
+                      : Icon(item.icon),
+                  label: item.label,
+                ),
+              )
+              .toList(),
+        ),
       ),
     );
   }

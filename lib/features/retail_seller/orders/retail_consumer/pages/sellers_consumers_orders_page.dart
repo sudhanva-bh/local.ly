@@ -8,7 +8,7 @@ import 'package:locally/features/consumer/view_orders/widgets/status_chip.dart';
 import 'package:locally/features/retail_seller/orders/retail_consumer/pages/seller_order_details_page.dart';
 // import 'package:locally/features/retail_seller/orders/retail_consumer/pages/seller_consumers_order_details_screen.dart';
 // ⬇️ Make sure to import the file where you defined the 'sellerOrdersProvider' and 'orderServiceProvider'
-// import 'package:locally/features/retail_seller/orders/retail_consumer/providers/seller_order_service.dart'; 
+// import 'package:locally/features/retail_seller/orders/retail_consumer/providers/seller_order_service.dart';
 
 // class SellerOrdersPage extends ConsumerWidget {
 //   const SellerOrdersPage({super.key});
@@ -84,113 +84,122 @@ class SellerOrderCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dateStr = DateFormat('MMM dd • hh:mm a').format(order.createdAt);
-    final totalStr = NumberFormat.currency(symbol: '₹').format(order.totalAmount);
+    final totalStr = NumberFormat.currency(
+      symbol: '₹',
+    ).format(order.totalAmount);
     final itemCount = order.items?.length ?? 0;
 
-    return Card(
-      elevation: 0,
-      color: context.colors.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colors.surfaceDim,
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: context.colors.outlineVariant.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: context.colors.shadow.withOpacity(0.5),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => SellerOrderDetailsScreen(initialOrder: order),
-            ),
-          );
-        },
+      child: Material(
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header: ID + Status
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "#${order.id.substring(0, 8).toUpperCase()}",
-                    style: context.text.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  // Assuming you have a StatusChip widget. If not, use a Chip or Text.
-                  StatusChip(status: order.status), 
-                ],
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SellerOrderDetailsScreen(initialOrder: order),
               ),
-              const SizedBox(height: 12),
-
-              // Info Row: Items + Total
-              Row(
-                children: [
-                  Icon(
-                    Icons.shopping_bag_outlined,
-                    size: 16,
-                    color: context.colors.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "$itemCount items",
-                    style: context.text.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    totalStr,
-                    style: context.text.titleMedium?.copyWith(
-                      color: context.colors.primary,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(dateStr, style: context.text.bodySmall),
-
-              // Actions Divider
-              if (order.status == OrderStatus.pending) ...[
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Divider(height: 1),
-                ),
-                // Quick Action Buttons
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          // TODO: Implement Shipping Label Logic
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: context.colors.primary,
-                          side: BorderSide(
-                            color: context.colors.primary.withOpacity(0.5),
-                          ),
-                        ),
-                        child: const Text("Shipping Label"),
+                    Text(
+                      "#${order.id.substring(0, 8).toUpperCase()}",
+                      style: context.text.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () async {
-                          // ⚡ ACTION: Call the service
-                          await ref.read(orderServiceProvider).receiveOrder(order.id);
-                          // No need to refresh manually; the Stream will update the UI!
-                        },
-                        child: const Text("Accept Order"),
+                    StatusChip(status: order.status),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // Items + Total
+                Row(
+                  children: [
+                    Icon(
+                      Icons.shopping_bag_outlined,
+                      size: 16,
+                      color: context.colors.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "$itemCount items",
+                      style: context.text.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      totalStr,
+                      style: context.text.titleMedium?.copyWith(
+                        color: context.colors.primary,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ],
                 ),
+
+                const SizedBox(height: 4),
+                Text(dateStr, style: context.text.bodySmall),
+
+                // Actions
+                if (order.status == OrderStatus.pending) ...[
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Divider(height: 1),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {},
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: context.colors.primary,
+                            side: BorderSide(
+                              color: context.colors.primary.withOpacity(0.5),
+                            ),
+                          ),
+                          child: const Text("Shipping Label"),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: () async {
+                            await ref
+                                .read(orderServiceProvider)
+                                .receiveOrder(order.id);
+                          },
+                          child: const Text("Accept Order"),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -9,8 +10,8 @@ import 'package:locally/common/providers/consumer_profile_provider.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
 import 'package:locally/common/providers/profile_provider.dart'; // Ensure this is imported
 import 'package:locally/features/consumer/cart/controllers/cart_controller.dart';
+import 'package:locally/features/consumer/view_product/widgets/rating_section.dart';
 import 'package:locally/features/retail_seller/view_product_for_order/widgets/product_map.dart';
-import 'package:locally/features/retail_seller/view_product_for_order/widgets/product_ratings_section.dart';
 import 'package:locally/common/widgets/products/image_gallary.dart';
 import 'package:locally/features/view_seller/pages/view_seller_page.dart';
 
@@ -57,7 +58,7 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              "${product.name} added to cart (x$_quantity)",
+              "Item added to cart (x$_quantity)",
               style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: Colors.green,
@@ -291,7 +292,7 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
                       InkWell(
                         onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(
+                          CupertinoPageRoute(
                             builder: (context) => ViewSellerPage(
                               sellerId: product.sellerId,
                             ),
@@ -300,7 +301,7 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: colors.surfaceContainerLow,
+                            color: colors.surfaceDim,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -372,11 +373,11 @@ class _ConsumerViewProductState extends ConsumerState<ConsumerViewProduct> {
                       const SizedBox(height: 24),
 
                       /// 🌟 Ratings Section
-                      if (product.ratings.isNotEmpty)
-                        ProductRatingsSection(
-                          ratings: product.ratings,
-                          averageRating: product.averageRating,
-                        ),
+                      ConsumerProductRatingsSection(
+                        productId: product.productId, // Pass the ID
+                        ratings: product.ratings,
+                        averageRating: product.averageRating,
+                      ),
 
                       /// 🗺️ Product location map
                       if (product.latitude != 0.0 && product.longitude != 0.0)

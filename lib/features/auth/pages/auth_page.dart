@@ -25,12 +25,6 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     });
   }
 
-  void _handleSignIn(String email, String password) {
-    final controller = ref.read(authControllerProvider.notifier);
-
-    controller.signIn(email: email, password: password);
-  }
-
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -51,28 +45,15 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        actions: [
-          IconButton(
-            onPressed: () => _handleSignIn("radmin@gmail.com", "Test123"),
-            icon: Icon(Icons.shopify),
-          ),
-          IconButton(
-            onPressed: () => _handleSignIn("wadmin@gmail.com", "Test123"),
-            icon: Icon(Icons.warehouse_sharp),
-          ),
-        ],
       ),
       extendBodyBehindAppBar: true,
       body: Container(
-        // ... inside your body: Container( ...
         decoration: BoxDecoration(
           image: DecorationImage(
             image: ref.watch(bgImageProvider),
             fit: BoxFit.cover,
           ),
         ),
-
-        // ...        ),
         child: Stack(
           alignment: Alignment.bottomCenter,
           children: [

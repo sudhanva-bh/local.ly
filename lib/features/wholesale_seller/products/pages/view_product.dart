@@ -8,6 +8,7 @@ import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/providers/product_service_providers.dart';
 import 'package:locally/common/providers/profile_provider.dart';
 import 'package:locally/common/widgets/products/image_gallary.dart';
+import 'package:locally/features/view_seller/pages/view_seller_page.dart';
 import 'package:locally/features/wholesale_seller/products/pages/edit_product.dart';
 
 class ViewProduct extends ConsumerWidget {
@@ -86,11 +87,20 @@ class ViewProduct extends ConsumerWidget {
                       ref
                           .watch(getProfileByIdProvider(product.shopId))
                           .when(
-                            data: (seller) => Text(
-                              seller.shopName,
-                              style: text.bodyMedium!.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colors.onSurface,
+                            data: (seller) => GestureDetector(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ViewSellerPage(sellerId: product.shopId),
+                                ),
+                              ),
+                              child: Text(
+                                seller.shopName,
+                                style: text.bodyMedium!.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colors.onSurface,
+                                ),
                               ),
                             ),
                             loading: () => const SizedBox(

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:locally/common/widgets/bottom_navigator.dart';
 import 'package:locally/features/chat/pages/retailer_chat_list_page.dart';
 import 'package:locally/features/wholesale_seller/create_product/pages/create_page.dart';
-import 'package:locally/features/wholesale_seller/home/presentation/pages/home_page.dart';
+import 'package:locally/features/wholesale_seller/home/pages/home_page.dart';
 import 'package:locally/features/wholesale_seller/orders/pages/orders_page.dart';
 import 'package:locally/features/wholesale_seller/products/pages/products_page.dart';
 import 'package:locally/features/wholesale_seller/profile_page/pages/profile_page.dart';
@@ -85,35 +85,64 @@ class _WholesaleNavPageState extends ConsumerState<WholesaleNavPage> {
     // This rebuilds the widget whenever the index changes (externally or via tap)
     final currentIndex = ref.watch(wholesaleNavIndexProvider);
 
-    return Scaffold(
-      extendBody: true,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const SellerChatListPage()),
-          );
-        },
-        child: const Icon(Icons.chat),
-      ),
-      body: FadeIndexedStack(
-        index: currentIndex, // Use the provider value
-        children: _pages,
-      ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: currentIndex, // Use the provider value
-        onTap: _onNavTap,
-        items: _navItems
-            .map(
-              (item) => BottomNavigationBarItem(
-                icon: Icon(item.icon),
-                activeIcon: item.activeIcon != null
-                    ? Icon(item.activeIcon)
-                    : Icon(item.icon),
-                label: item.label,
+    return PopScope(
+      canPop: false, // block automatic popping
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return; // system already popped, do nothing
+
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Exit App?'),
+            content: const Text('Do you want to close the app?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('No'),
               ),
-            )
-            .toList(),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Yes'),
+              ),
+            ],
+          ),
+        );
+        if (!context.mounted) return;
+
+        if (confirm == true) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        extendBody: true,
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SellerChatListPage()),
+            );
+          },
+          child: const Icon(Icons.chat),
+        ),
+        body: FadeIndexedStack(
+          index: currentIndex, // Use the provider value
+          children: _pages,
+        ),
+        bottomNavigationBar: CustomBottomNavBar(
+          currentIndex: currentIndex, // Use the provider value
+          onTap: _onNavTap,
+          items: _navItems
+              .map(
+                (item) => BottomNavigationBarItem(
+                  icon: Icon(item.icon),
+                  activeIcon: item.activeIcon != null
+                      ? Icon(item.activeIcon)
+                      : Icon(item.icon),
+                  label: item.label,
+                ),
+              )
+              .toList(),
+        ),
       ),
     );
   }

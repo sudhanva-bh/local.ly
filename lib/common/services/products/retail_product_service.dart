@@ -1,5 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:locally/common/models/products/retail_product_model.dart';
+import 'package:locally/common/models/ratings/rating_model.dart';
 import 'package:locally/common/services/products/supabase_image_service.dart';
 import 'package:locally/common/services/supabase_services/supabase_service_search.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -180,5 +181,36 @@ class RetailProductService {
         .map(
           (data) => data.map((json) => RetailProduct.fromMap(json)).toList(),
         );
+  }
+
+  Future<void> addProductRating(String productId, Rating rating) async {
+    try {
+      // 1. Fetch current ratings (to avoid race conditions with full product updates,
+      // strictly select only the ratings column)
+      final response = await _supabase
+          .from(_tableName)
+          .select('ratings')
+          .eq('product_id', productId)
+          .single();
+
+      List<Rating> currentRatings = [];
+      if (response['ratings'] != null) {
+        final list = response['ratings'] as List;
+        currentRatings = list
+            .map((e) => Rating.fromMap(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+
+      // 2. Append new rating
+      currentRatings.add(rating);
+
+      // 3. Update the column
+      await _supabase.from(_tableName).update({
+        'ratings': currentRatings.map((r) => r.toMap()).toList(),
+      }).eq('product_id', productId);
+      
+    } catch (e) {
+      throw Exception('Failed to add rating: $e');
+    }
   }
 }

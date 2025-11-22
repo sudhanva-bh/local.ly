@@ -44,43 +44,75 @@ class RetailOrdersPage extends ConsumerWidget {
         final sortedOrders = List<WholesaleRetailOrder>.from(orders)
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
+        // void markAsRecieved() {
+        //   for (WholesaleRetailOrder order in sortedOrders) {
+        //     try {
+        //       final wholesaleRetailOrderService = ref.read(
+        //         wholesaleRetailOrderServiceProvider,
+        //       );
+        //       wholesaleRetailOrderService.updateOrderStatus(
+        //         order.orderId,
+        //         "Received",
+        //       );
+        //       wholesaleRetailOrderService.addOrderToRetailerInventory(
+        //         order,
+        //       );
+        //     } catch (e) {
+        //       ScaffoldMessenger.of(context).showSnackBar(
+        //         SnackBar(
+        //           content: Text('Failed to update status: $e'),
+        //           backgroundColor: context.colors.error,
+        //         ),
+        //       );
+        //     }
+        //   }
+        // }
+
         // 4. List of Orders
-        return ListView.builder(
-          padding: const EdgeInsets.only(bottom: 160),
-          itemCount: sortedOrders.length,
-          itemBuilder: (context, index) {
-            final order = sortedOrders[index];
+        return Stack(
+          children: [
+            ListView.builder(
+              padding: const EdgeInsets.only(bottom: 160),
+              itemCount: sortedOrders.length,
+              itemBuilder: (context, index) {
+                final order = sortedOrders[index];
 
-            return RetailOrderCard(
-              order: order,
-              // 5. Logic to handle status updates if triggered from the card
-              onUpdateStatus: (newStatus) async {
-                try {
-                  await ref
-                      .read(wholesaleRetailOrderServiceProvider)
-                      .updateOrderStatus(order.orderId, newStatus);
+                return RetailOrderCard(
+                  order: order,
+                  // 5. Logic to handle status updates if triggered from the card
+                  onUpdateStatus: (newStatus) async {
+                    try {
+                      await ref
+                          .read(wholesaleRetailOrderServiceProvider)
+                          .updateOrderStatus(order.orderId, newStatus);
 
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Order marked as $newStatus'),
-                        backgroundColor: context.colors.primary,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to update: $e'),
-                        backgroundColor: context.colors.error,
-                      ),
-                    );
-                  }
-                }
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Order marked as $newStatus'),
+                            backgroundColor: context.colors.primary,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to update: $e'),
+                            backgroundColor: context.colors.error,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                );
               },
-            );
-          },
+            ),
+            // IconButton(
+            //   onPressed: markAsRecieved,
+            //   icon: Icon(Icons.all_inclusive_sharp),
+            // ),
+          ],
         );
       },
       // 6. Loading State

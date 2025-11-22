@@ -76,20 +76,17 @@ class _RetailProductGridCardState extends ConsumerState<RetailProductGridCard> {
         },
         child: Container(
           decoration: BoxDecoration(
-            color: context.colors.surfaceContainerLow,
+            color: context.colors.surfaceDim,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: context.colors.outlineVariant.withOpacity(0.5),
-            ),
-            boxShadow: _isPressed
-                ? []
-                : [
+            boxShadow: !_isPressed
+                ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withOpacity(0.5),
                       blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      offset: const Offset(0, 6),
                     ),
-                  ],
+                  ]
+                : [],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
