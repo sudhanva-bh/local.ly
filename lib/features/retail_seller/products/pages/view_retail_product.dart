@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/providers/product_service_providers.dart'; // 👈 Has retail providers
 import 'package:locally/common/providers/profile_provider.dart';
@@ -263,8 +262,7 @@ class ViewRetailProduct extends ConsumerWidget {
             ),
             children: [
               TileLayer(
-                urlTemplate:
-                    "https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=${dotenv.env["MAPTILER_API_KEY"]}",
+                urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                 userAgentPackageName: "com.locally.app",
               ),
               MarkerLayer(

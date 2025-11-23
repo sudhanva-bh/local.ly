@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:locally/common/gates/token_updater_wrapper.dart';
 import 'package:locally/common/models/users/account_type.dart';
 import 'package:locally/common/providers/auth_providers.dart';
 import 'package:locally/features/consumer/consumer_nav_page.dart';
@@ -17,32 +18,35 @@ class AppGate extends ConsumerWidget {
 
     return authState.when(
       data: (user) {
-        if (user == null) {
-          // No session → show welcome/auth flow
-          return const WelcomeScreen();
-        }
+        if (user == null) return const WelcomeScreen();
 
-        // User logged in → read metadata
         final metadata = user.userMetadata ?? {};
-
         final onboarded = metadata["onboarded"] == true;
         final accountTypeRaw = metadata["accountType"] as String?;
 
-        // If user hasn't onboarded → setup
-        if (!onboarded) {
-          return const SetupPage();
-        }
+        if (!onboarded) return const SetupPage();
 
-        // User onboarded → route based on account type
         final accountType = AccountTypeX.fromValue(accountTypeRaw);
+
+        // NOTE: We do not call the service here anymore.
+        // We let the Wrapper handle it.
 
         switch (accountType) {
           case AccountType.wholesaleSeller:
-            return const WholesaleNavPage();
+            return const TokenUpdaterWrapper(
+              isConsumer: false,
+              child: WholesaleNavPage(),
+            );
           case AccountType.retailSeller:
-            return const RetailNavPage();
+            return const TokenUpdaterWrapper(
+              isConsumer: false,
+              child: RetailNavPage(),
+            );
           case AccountType.consumer:
-            return const ConsumerNavPage();
+            return const TokenUpdaterWrapper(
+              isConsumer: true,
+              child: ConsumerNavPage(),
+            );
         }
       },
       loading: () => const Scaffold(

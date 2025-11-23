@@ -1,6 +1,5 @@
 // lib/features/consumer/profile/widgets/consumer_location_map.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:locally/common/extensions/content_extensions.dart';
@@ -14,7 +13,7 @@ class ConsumerLocationMap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    
+
     if (consumer.latitude == null || consumer.longitude == null) {
       return const SizedBox.shrink();
     }
@@ -42,9 +41,8 @@ class ConsumerLocationMap extends StatelessWidget {
               ),
               children: [
                 TileLayer(
-                  urlTemplate:
-                      "https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=${dotenv.env["MAPTILER_API_KEY"]}",
-                  userAgentPackageName: "com.example.app",
+                  urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  userAgentPackageName: "com.example.locallyapp",
                 ),
                 MarkerLayer(
                   markers: [

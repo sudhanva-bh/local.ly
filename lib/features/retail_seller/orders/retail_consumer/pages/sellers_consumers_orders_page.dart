@@ -190,7 +190,7 @@ class SellerOrderCard extends ConsumerWidget {
                           onPressed: () async {
                             await ref
                                 .read(orderServiceProvider)
-                                .receiveOrder(order.id);
+                                .receiveOrder(order);
                           },
                           child: const Text("Accept Order"),
                         ),

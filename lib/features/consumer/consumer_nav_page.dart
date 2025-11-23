@@ -90,7 +90,6 @@ class ConsumerNavPage extends ConsumerWidget {
       },
       child: Scaffold(
         extendBody: true,
-
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             Navigator.push(

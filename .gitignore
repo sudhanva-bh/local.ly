@@ -47,3 +47,5 @@ app.*.map.json
 .env
 supabase/functions/service-account.json
 lib/firebase_options.dart
+
+supabase/functions/

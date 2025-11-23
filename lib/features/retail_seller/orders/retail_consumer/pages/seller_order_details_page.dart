@@ -173,7 +173,7 @@ class SellerOrderDetailsScreen extends ConsumerWidget {
                     // 1. Call Service
                     final result = await ref
                         .read(orderServiceProvider)
-                        .receiveOrder(order.id);
+                        .receiveOrder(order);
 
                     // 2. Handle Error (Success is handled by Stream update)
                     result.fold(

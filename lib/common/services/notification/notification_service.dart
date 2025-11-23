@@ -4,12 +4,49 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locally/common/providers/auth_providers.dart';
 import 'package:locally/common/providers/profile_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NotificationService {
   final Ref _ref;
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
 
+  SupabaseClient get _supabase => _ref.read(supabaseClientProvider);
+
   NotificationService(this._ref);
+
+  Future<void> updateUserFcmToken(bool isConsumer) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    // Request permissions
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      String? token = await messaging.getToken();
+
+      if (token != null) {
+        final table = isConsumer ? 'consumer_profiles' : 'profiles';
+
+        await _supabase
+            .from(table)
+            .update({'fcm_token': token}) // Updates the column in your schema
+            .eq('id', userId);
+
+        // Listen for token refreshes
+        FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+          await _supabase
+              .from(table)
+              .update({'fcm_token': newToken})
+              .eq('id', userId);
+        });
+      }
+    }
+  }
 
   /// Requests notification permission and returns the FCM token.
   /// Use this during the initial setup.
@@ -22,7 +59,7 @@ class NotificationService {
         sound: true,
       );
     }
-    
+
     // 2. Get the token
     return await _fcm.getToken();
   }
@@ -67,5 +104,30 @@ class NotificationService {
     } catch (e) {
       print('Error saving FCM token: $e');
     }
+  }
+}
+
+Future<void> sendNotificationToUser({
+  required String targetUserId,
+  required String title,
+  required String body,
+}) async {
+  try {
+    final response = await Supabase.instance.client.functions.invoke(
+      'send-push',
+      body: {
+        'user_id': targetUserId,
+        'title': title,
+        'body': body,
+      },
+    );
+
+    if (response.status == 200) {
+      print('Notification Sent!');
+    } else {
+      print('Error: ${response.data}');
+    }
+  } catch (e) {
+    print('Exception triggering notification: $e');
   }
 }

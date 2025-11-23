@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:locally/common/providers/auth_providers.dart';
 import 'package:locally/features/consumer/home/widgets/product_card.dart';
 import 'package:locally/features/consumer/home/widgets/product_skeleton_card.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Project Imports
 import 'package:locally/common/extensions/content_extensions.dart';
@@ -21,15 +21,15 @@ import 'package:locally/features/consumer/view_orders/widgets/order_expandable_c
 final recommendationsProvider = FutureProvider<List<RetailProduct>>((
   ref,
 ) async {
-  final response = await Supabase.instance.client.rpc(
+  final response = await ref.read(supabaseClientProvider).rpc(
     'get_recommendations',
-    params: {'target_user_id': Supabase.instance.client.auth.currentUser?.id},
+    params: {'target_user_id': ref.read(supabaseClientProvider).auth.currentUser?.id},
   );
   return (response as List).map((data) => RetailProduct.fromMap(data)).toList();
 });
 
 final freshFindsProvider = FutureProvider<List<RetailProduct>>((ref) async {
-  final response = await Supabase.instance.client.rpc(
+  final response = await ref.read(supabaseClientProvider).rpc(
     'get_latest_products_from_random_sellers',
     params: {'limit_count': 5},
   );
