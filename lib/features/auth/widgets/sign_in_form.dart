@@ -4,7 +4,7 @@ import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/utilities/custom_snackbar.dart';
 import 'package:locally/features/auth/controllers/auth_controller.dart';
 import 'package:locally/features/auth/widgets/custom_text_field.dart';
-import 'package:locally/common/routes/app_routes.dart'; // for navigation
+import 'package:locally/common/routes/app_routes.dart';
 
 class SignInForm extends ConsumerStatefulWidget {
   final VoidCallback toggleForm;
@@ -43,15 +43,11 @@ class _SignInFormState extends ConsumerState<SignInForm> {
   Widget build(BuildContext context) {
     final state = ref.watch(authControllerProvider);
 
-    // Listen for auth changes only once (outside build cycles)
     ref.listen<AuthState>(authControllerProvider, (previous, next) {
       if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
         CustomSnackbar.error(context, next.errorMessage!);
       }
-
-      // ✅ Navigate after successful login
       if (previous?.user == null && next.user != null) {
-        // await Future.delayed(Duration(milliseconds: 1500));
         Navigator.of(context).pushNamedAndRemoveUntil(
           AppRoutes.appGate,
           (route) => false,
@@ -74,6 +70,8 @@ class _SignInFormState extends ConsumerState<SignInForm> {
                 setState(() => showPassword = !showPassword),
           ),
           const SizedBox(height: 24),
+          
+          // --- Main Sign In Button ---
           SizedBox(
             width: double.infinity,
             height: 55,
@@ -104,11 +102,70 @@ class _SignInFormState extends ConsumerState<SignInForm> {
                     ),
             ),
           ),
+
           const SizedBox(height: 24),
+
+          // --- OR Divider ---
+          Row(
+            children: [
+              Expanded(child: Divider(color: Colors.white.withOpacity(0.2))),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  "OR",
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.5),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Expanded(child: Divider(color: Colors.white.withOpacity(0.2))),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          // --- Dummy Google Button ---
+          SizedBox(
+            width: double.infinity,
+            height: 55,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black87,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              onPressed: () {
+                // Dummy action - does nothing
+              },
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Replace this Icon with Image.asset('assets/google_logo.png')
+                  Icon(Icons.g_mobiledata, size: 28, color: Colors.red), 
+                  SizedBox(width: 12),
+                  Text(
+                    "Sign in with Google",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+          
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 "Don’t have an account? ",
                 style: TextStyle(
                   color: Colors.white,

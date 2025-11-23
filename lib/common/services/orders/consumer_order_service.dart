@@ -15,17 +15,20 @@ final orderServiceProvider = Provider<OrderService>((ref) {
 });
 
 // 1. The List Provider (for the main page)
-final sellerOrdersProvider = StreamProvider.autoDispose<List<OrderModel>>((ref) {
+final sellerOrdersProvider = StreamProvider.autoDispose<List<OrderModel>>((
+  ref,
+) {
   final service = ref.watch(orderServiceProvider);
   return service.getSellerOrdersStream();
 });
 
 // 2. The Single Order Provider (for the details page)
 // This ensures that if the status changes while viewing details, the UI updates.
-final sellerOrderDetailsProvider = StreamProvider.family.autoDispose<OrderModel, String>((ref, orderId) {
-  final service = ref.watch(orderServiceProvider);
-  return service.getSingleOrderStream(orderId);
-});
+final sellerOrderDetailsProvider = StreamProvider.family
+    .autoDispose<OrderModel, String>((ref, orderId) {
+      final service = ref.watch(orderServiceProvider);
+      return service.getSingleOrderStream(orderId);
+    });
 
 // --- Data Provider (Converted to StreamProvider) ---
 final myOrdersProvider = StreamProvider.autoDispose<List<OrderModel>>((ref) {
@@ -36,11 +39,12 @@ final myOrdersProvider = StreamProvider.autoDispose<List<OrderModel>>((ref) {
   return service.getConsumerOrdersStream();
 });
 
-final singleOrderProvider = StreamProvider.family.autoDispose<OrderModel, String>((ref, orderId) {
-  final service = ref.watch(orderServiceProvider);
-  // Uses the extension method from your Service code
-  return service.getSingleOrderStream(orderId);
-});
+final singleOrderProvider = StreamProvider.family
+    .autoDispose<OrderModel, String>((ref, orderId) {
+      final service = ref.watch(orderServiceProvider);
+      // Uses the extension method from your Service code
+      return service.getSingleOrderStream(orderId);
+    });
 
 class OrderService {
   final SupabaseClient _supabase;
@@ -52,111 +56,112 @@ class OrderService {
 
   /// 🛒 Place Order (Refactored with Stock Check)
   Future<Either<String, List<String>>> placeOrder({
-  required List<CartItemModel> cartItems,
-  required String deliveryAddress,
-  required double deliveryLat,
-  required double deliveryLong,
-}) async {
-  final user = _supabase.auth.currentUser;
-  if (user == null) return const Left("User not logged in");
-  if (cartItems.isEmpty) return const Left("Cart is empty");
+    required List<CartItemModel> cartItems,
+    required String deliveryAddress,
+    required double deliveryLat,
+    required double deliveryLong,
+  }) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return const Left("User not logged in");
+    if (cartItems.isEmpty) return const Left("Cart is empty");
 
-  try {
-    final Map<String, List<CartItemModel>> itemsBySeller = {};
+    try {
+      final Map<String, List<CartItemModel>> itemsBySeller = {};
 
-    for (var item in cartItems) {
-      if (item.product == null) continue;
-      final sellerId = item.product!.sellerId;
+      for (var item in cartItems) {
+        if (item.product == null) continue;
+        final sellerId = item.product!.sellerId;
 
-      itemsBySeller.putIfAbsent(sellerId, () => []);
-      itemsBySeller[sellerId]!.add(item);
-    }
-
-    final List<String> createdOrderIds = [];
-
-    for (var entry in itemsBySeller.entries) {
-      final sellerId = entry.key;
-      final sellerItems = entry.value;
-
-      final totalAmount = sellerItems.fold(0.0, (sum, item) {
-        return sum + item.totalCost;
-      });
-
-      final List<Map<String, dynamic>> orderItemsPayload = [];
-
-      // --- Stock decrement for each item ---
-      for (var item in sellerItems) {
-        final price = item.product!.discountedPrice ?? item.product!.price;
-
-        await _supabase.rpc(
-          'decrement_product_stock',
-          params: {
-            'product_id_input': item.productId,
-            'quantity_input': item.quantity,
-          },
-        );
-
-        orderItemsPayload.add({
-          'order_id': '',
-          'product_id': item.productId,
-          'quantity': item.quantity,
-          'price_at_purchase': price,
-        });
+        itemsBySeller.putIfAbsent(sellerId, () => []);
+        itemsBySeller[sellerId]!.add(item);
       }
 
-      // --- Insert order header ---
-      final orderRes = await _supabase
-          .from('orders')
-          .insert({
-            'consumer_id': user.id,
-            'seller_id': sellerId,
-            'status': 'pending',
-            'total_amount': totalAmount,
-            'delivery_address': deliveryAddress,
-            'delivery_lat': deliveryLat,
-            'delivery_long': deliveryLong,
-          })
-          .select()
-          .single();
+      final List<String> createdOrderIds = [];
 
-      final orderId = orderRes['id'].toString();
-      createdOrderIds.add(orderId);
+      for (var entry in itemsBySeller.entries) {
+        final sellerId = entry.key;
+        final sellerItems = entry.value;
 
-      // --- Insert order items ---
-      final finalOrderItemsPayload = orderItemsPayload.map((item) {
-        item['order_id'] = orderId;
-        return item;
-      }).toList();
+        final totalAmount = sellerItems.fold(0.0, (sum, item) {
+          return sum + item.totalCost;
+        });
 
-      await _supabase.from('order_items').insert(finalOrderItemsPayload);
+        final List<Map<String, dynamic>> orderItemsPayload = [];
 
-      // ---------------------------------------------------------
-      // 🔥 SEND NOTIFICATION TO SELLER
-      // ---------------------------------------------------------
+        // --- Stock decrement for each item ---
+        for (var item in sellerItems) {
+          final price = item.product!.discountedPrice ?? item.product!.price;
 
-      // We safely wrap this so that order placement NEVER fails due to notifications
-      unawaited(
-        sendNotificationToUser(
-          targetUserId: sellerId,
-          title: "New Order Received",
-          body: "You have a new order (#$orderId). Tap to view.",
-        ).catchError((e) {
-          print("Notification failed for seller $sellerId: $e");
-        }),
-      );
+          await _supabase.rpc(
+            'decrement_product_stock',
+            params: {
+              'product_id_input': item.productId,
+              'quantity_input': item.quantity,
+            },
+          );
+
+          orderItemsPayload.add({
+            'order_id': '',
+            'product_id': item.productId,
+            'quantity': item.quantity,
+            'price_at_purchase': price,
+          });
+        }
+
+        // --- Insert order header ---
+        final orderRes = await _supabase
+            .from('orders')
+            .insert({
+              'consumer_id': user.id,
+              'seller_id': sellerId,
+              'status': 'pending',
+              'total_amount': totalAmount,
+              'delivery_address': deliveryAddress,
+              'delivery_lat': deliveryLat,
+              'delivery_long': deliveryLong,
+            })
+            .select()
+            .single();
+
+        final orderId = orderRes['id'].toString();
+        createdOrderIds.add(orderId);
+
+        // --- Insert order items ---
+        final finalOrderItemsPayload = orderItemsPayload.map((item) {
+          item['order_id'] = orderId;
+          return item;
+        }).toList();
+
+        await _supabase.from('order_items').insert(finalOrderItemsPayload);
+
+        // ---------------------------------------------------------
+        // 🔥 SEND NOTIFICATION TO SELLER
+        // ---------------------------------------------------------
+
+        // We safely wrap this so that order placement NEVER fails due to notifications
+        print("-----> Place Order: $sellerId $orderId");
+        unawaited(
+          sendNotificationToUser(
+            targetUserId: sellerId,
+            title: "New Order Received",
+            body: "You have a new order (#$orderId). Tap to view.",
+          ).catchError((e) {
+            print("Notification failed for seller $sellerId: $e");
+          }),
+        );
+      }
+
+      // --- Clear cart ---
+      await _supabase.from('cart_items').delete().eq('user_id', user.id);
+
+      return Right(createdOrderIds);
+    } on PostgrestException catch (e) {
+      return Left(e.message);
+    } catch (e) {
+      return Left(e.toString());
     }
-
-    // --- Clear cart ---
-    await _supabase.from('cart_items').delete().eq('user_id', user.id);
-
-    return Right(createdOrderIds);
-  } on PostgrestException catch (e) {
-    return Left(e.message);
-  } catch (e) {
-    return Left(e.toString());
   }
-}
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
   // 📡 REALTIME STREAMS
   // ---------------------------------------------------------------------------
 
@@ -225,11 +230,15 @@ class OrderService {
           'order_id_input': order.id,
         },
       );
+
+      print("-----> Receive Order: ${order.consumerId} ${order.id}");
+
       unawaited(
         sendNotificationToUser(
           targetUserId: order.consumerId,
           title: "You order has been accepted",
-          body: "The seller has accepted your order(${order.id}) consisting of ${order.items?.length ?? 0} items. Tap to view.",
+          body:
+              "The seller has accepted your order(${order.id}) consisting of ${order.items?.length ?? 0} items. Tap to view.",
         ).catchError((e) {
           print("receiveOrder notification failed");
         }),
@@ -293,7 +302,6 @@ class OrderService {
 }
 
 extension OrderServiceExtensions on OrderService {
-  
   /// 🔍 Get Single Order Stream (Realtime)
   Stream<OrderModel> getSingleOrderStream(String orderId) {
     // We subscribe to the specific row in the DB
@@ -306,16 +314,18 @@ extension OrderServiceExtensions on OrderService {
           if (event.isEmpty) {
             throw Exception("Order not found");
           }
-          
+
           // We need to fetch the full details (items + products) again
           // because the stream event only gives us the order header.
           // Reuse your existing fetch logic but filter by ID.
           final data = await _supabase
               .from('orders')
-              .select('*, order_items(*, retail_products(product_name, image_urls))')
+              .select(
+                '*, order_items(*, retail_products(product_name, image_urls))',
+              )
               .eq('id', orderId)
               .single();
-          
+
           return OrderModel.fromMap(data);
         });
   }

@@ -4,16 +4,7 @@ import 'package:locally/features/consumer/cart/controllers/cart_controller.dart'
 
 // 1. Delivery Fee Provider (Keep as is, or update to use distance later)
 final deliveryFeeProvider = Provider.autoDispose<double>((ref) {
-  final cartState = ref.watch(cartControllerProvider);
-  return cartState.maybeWhen(
-    data: (items) {
-      if (items.isEmpty) return 0.0;
-      final totalQuantity = items.fold(0, (sum, item) => sum + item.quantity);
-      double fee = 20.0 + (totalQuantity * 5.0);
-      return fee > 100 ? 100.0 : fee;
-    },
-    orElse: () => 0.0,
-  );
+  return 0;
 });
 
 // 2. Grand Total Provider

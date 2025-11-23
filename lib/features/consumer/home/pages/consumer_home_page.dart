@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:locally/common/constants/widget_properties.dart';
+import 'package:locally/common/models/ratings/rating_model.dart';
 import 'package:locally/common/providers/auth_providers.dart';
 import 'package:locally/features/consumer/home/widgets/product_card.dart';
 import 'package:locally/features/consumer/home/widgets/product_skeleton_card.dart';
@@ -7,6 +9,7 @@ import 'package:locally/features/consumer/home/widgets/product_skeleton_card.dar
 // Project Imports
 import 'package:locally/common/extensions/content_extensions.dart';
 import 'package:locally/common/models/products/retail_product_model.dart';
+import 'package:locally/common/models/users/seller_model.dart'; // Ensure Seller model is imported
 import 'package:locally/common/providers/consumer_profile_provider.dart';
 import 'package:locally/features/consumer/consumer_nav_page.dart';
 
@@ -15,24 +18,63 @@ import 'package:locally/common/services/orders/consumer_order_service.dart';
 import 'package:locally/features/consumer/view_orders/pages/order_details_page.dart';
 import 'package:locally/features/consumer/view_orders/widgets/order_expandable_card.dart';
 
+// Seller Imports (Assuming this path exists based on your prompt)
+import 'package:locally/features/view_seller/pages/view_seller_page.dart';
+
 // -----------------------------------------------------------------------------
 // PROVIDERS
 // -----------------------------------------------------------------------------
+
+// NEW: Nearest Stores Provider
+final nearestStoresProvider = FutureProvider<List<Seller>>((ref) async {
+  // 1. Get current user location
+  final profile = ref.watch(currentConsumerProfileProvider).value;
+
+  // If location isn't ready, return empty
+  if (profile?.latitude == null || profile?.longitude == null) {
+    return [];
+  }
+
+  // 2. Call the RPC directly
+  final response = await ref
+      .read(supabaseClientProvider)
+      .rpc(
+        'get_nearest_retail_sellers',
+        params: {
+          'user_lat': profile!.latitude,
+          'user_lon': profile.longitude,
+        },
+      );
+
+  // 3. Map to Seller model
+  return (response as List).map((data) => Seller.fromMap(data)).toList();
+});
+
 final recommendationsProvider = FutureProvider<List<RetailProduct>>((
   ref,
 ) async {
-  final response = await ref.read(supabaseClientProvider).rpc(
-    'get_recommendations',
-    params: {'target_user_id': ref.read(supabaseClientProvider).auth.currentUser?.id},
-  );
+  final response = await ref
+      .read(supabaseClientProvider)
+      .rpc(
+        'get_recommendations',
+        params: {
+          'target_user_id': ref
+              .read(supabaseClientProvider)
+              .auth
+              .currentUser
+              ?.id,
+        },
+      );
   return (response as List).map((data) => RetailProduct.fromMap(data)).toList();
 });
 
 final freshFindsProvider = FutureProvider<List<RetailProduct>>((ref) async {
-  final response = await ref.read(supabaseClientProvider).rpc(
-    'get_latest_products_from_random_sellers',
-    params: {'limit_count': 5},
-  );
+  final response = await ref
+      .read(supabaseClientProvider)
+      .rpc(
+        'get_latest_products_from_random_sellers',
+        params: {'limit_count': 5},
+      );
   return (response as List).map((data) => RetailProduct.fromMap(data)).toList();
 });
 
@@ -49,6 +91,7 @@ class ConsumerHomePage extends ConsumerStatefulWidget {
 class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
   @override
   Widget build(BuildContext context) {
+    final nearestStoresAsync = ref.watch(nearestStoresProvider);
     final recommendationsAsync = ref.watch(recommendationsProvider);
     final freshFindsAsync = ref.watch(freshFindsProvider);
     final ordersAsync = ref.watch(myOrdersProvider);
@@ -60,7 +103,9 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
           // 1. HEADER
           SliverToBoxAdapter(child: _buildHeader(context)),
 
-          // 2. TITLE: DISCOVER
+          // -------------------------------------------------------------------
+          // 3. TITLE: DISCOVER
+          // -------------------------------------------------------------------
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
@@ -84,7 +129,7 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
             ),
           ),
 
-          // 3. DISCOVER CONTENT (Updated to Single Slider)
+          // 4. DISCOVER CONTENT
           ...recommendationsAsync.when(
             data: (products) {
               if (products.isEmpty) {
@@ -103,7 +148,6 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
                 ];
               }
 
-              // Single Horizontal Slider for all items
               return [
                 SliverToBoxAdapter(
                   child: SizedBox(
@@ -117,7 +161,6 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
                         width: 180,
                         child: ProductCard(
                           product: products[index],
-                          isLarge: false, // Standard size for all
                         ),
                       ),
                     ),
@@ -125,7 +168,6 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
                 ),
               ];
             },
-            // === SHIMMER LOADING FOR DISCOVER ===
             loading: () => [
               SliverToBoxAdapter(
                 child: SizedBox(
@@ -133,7 +175,7 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     scrollDirection: Axis.horizontal,
-                    itemCount: 4, // Show a few skeletons
+                    itemCount: 4,
                     physics: const NeverScrollableScrollPhysics(),
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
                     itemBuilder: (context, index) => const SizedBox(
@@ -149,7 +191,51 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
             ],
           ),
 
-          // 4. TITLE: FRESH FROM SELLERS
+          // -------------------------------------------------------------------
+          // 2. NEW SECTION: STORES NEAR YOU
+          // -------------------------------------------------------------------
+          ...nearestStoresAsync.when(
+            data: (sellers) {
+              if (sellers.isEmpty) return [const SliverToBoxAdapter()];
+              return [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 8.0),
+                    child: Text(
+                      "Stores Near You",
+                      style: context.text.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: context.colors.onSurface,
+                      ),
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 140, // Height for the store cards
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: sellers.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      itemBuilder: (context, index) {
+                        final seller = sellers[index];
+                        return _buildSellerCard(context, seller);
+                      },
+                    ),
+                  ),
+                ),
+              ];
+            },
+            loading: () => [
+              const SliverToBoxAdapter(),
+            ], // Optional: Add Skeleton
+            error: (_, __) => [const SliverToBoxAdapter()],
+          ),
+
+          // -------------------------------------------------------------------
+          // 5. TITLE: FRESH FROM SELLERS
+          // -------------------------------------------------------------------
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
@@ -173,7 +259,7 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
             ),
           ),
 
-          // 5. FRESH FINDS CONTENT
+          // 6. FRESH FINDS CONTENT
           ...freshFindsAsync.when(
             data: (products) {
               if (products.isEmpty) return [const SliverToBoxAdapter()];
@@ -190,7 +276,6 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
                         width: 180,
                         child: ProductCard(
                           product: products[index],
-                          isLarge: false,
                         ),
                       ),
                     ),
@@ -198,7 +283,6 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
                 ),
               ];
             },
-            // === SHIMMER LOADING FOR FRESH FINDS ===
             loading: () => [
               SliverToBoxAdapter(
                 child: SizedBox(
@@ -222,14 +306,15 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
             ],
           ),
 
-          // 6. RECENT ORDERS SECTION
+          // -------------------------------------------------------------------
+          // 7. RECENT ORDERS SECTION
+          // -------------------------------------------------------------------
           ...ordersAsync.when(
             data: (orders) {
               if (orders.isEmpty) return [const SliverToBoxAdapter()];
               final recentOrders = orders.take(3).toList();
 
               return [
-                // Title
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
@@ -255,7 +340,6 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
                     ),
                   ),
                 ),
-                // List of Orders
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   sliver: SliverList(
@@ -304,6 +388,107 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
     );
   }
 
+  // Helper Widget for the Store Card
+  Widget _buildSellerCard(BuildContext context, Seller seller) {
+    return GestureDetector(
+      onTap: () {
+        // Navigate to the Seller Profile Page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ViewSellerPage(sellerId: seller.uid),
+          ),
+        );
+      },
+      child: Container(
+        width: 260,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: context.colors.surfaceDim,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: WidgetProperties.dropShadow,
+        ),
+        child: Row(
+          children: [
+            // Store Image
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: context.colors.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(12),
+                image: seller.profileImageUrl != null
+                    ? DecorationImage(
+                        image: NetworkImage(seller.profileImageUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: seller.profileImageUrl == null
+                  ? Icon(Icons.store, color: context.colors.onSurfaceVariant)
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            // Details
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    seller.shopName,
+                    style: context.text.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  if (seller.address != null)
+                    Text(
+                      seller.address!,
+                      style: context.text.bodySmall?.copyWith(
+                        color: context.colors.onSurfaceVariant,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  const SizedBox(height: 8),
+                  // Rating Badge (Optional)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star, size: 12, color: Colors.amber),
+                        const SizedBox(width: 4),
+                        Text(
+                          seller.ratings?.averageRating.toStringAsFixed(1) ??
+                              '0', // Placeholder or calculate from ratings
+                          style: context.text.labelSmall?.copyWith(
+                            color: Colors.amber[800],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -347,7 +532,7 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
                 child: GestureDetector(
                   onTap: () =>
                       ref.read(consumerNavIndexProvider.notifier).state = 4,
-                  child: Icon(Icons.person),
+                  child: const Icon(Icons.person),
                 ),
               ),
             ],
@@ -363,5 +548,18 @@ class _ConsumerHomePageState extends ConsumerState<ConsumerHomePage> {
         ],
       ),
     );
+  }
+}
+
+// Dart Extension on List<Rating> to calculate the average
+extension RatingListExtension on List<Rating> {
+  double get averageRating {
+    if (isEmpty) {
+      return 0.0;
+    }
+    // Calculate the sum of all 'stars' property using fold
+    final totalStars = fold(0, (sum, rating) => sum + rating.stars);
+    // Divide the sum by the number of ratings (length)
+    return totalStars / length;
   }
 }
