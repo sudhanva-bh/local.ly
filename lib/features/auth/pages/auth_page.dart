@@ -15,6 +15,8 @@ class AuthPage extends ConsumerStatefulWidget {
 
 class _AuthPageState extends ConsumerState<AuthPage> {
   @override
+  // Pre-caches background image to avoid frame drops and flickering
+  // when the screen first renders
   void initState() {
     super.initState();
 
@@ -28,12 +30,15 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    // Detects if keyboard is open to adjust UI visibility dynamically
     final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     // Riverpod auth form selector
+    // Watches authentication state to toggle between Sign In and Sign Up forms
     final showSignUp = ref.watch(
       authControllerProvider.select((s) => s.showSignUp),
     );
+    // Controller used to switch between authentication modes
     final controller = ref.read(authControllerProvider.notifier);
 
     // READ drag offset from provider

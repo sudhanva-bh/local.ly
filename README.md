@@ -2,7 +2,7 @@
 
 ## Project Description
 
-locally is a comprehensive Flutter-based mobile application designed to bridge the gap between wholesale sellers, retail sellers, and consumers. The platform facilitates a multi-layered marketplace where wholesalers can list products for retailers, and retailers, in turn, can manage their inventory and sell directly to consumers. The application leverages a modern tech stack to provide real-time updates, secure authentication, and location-based services.
+locally is a comprehensive Flutter-based mobile application designed to bridge the gap between wholesale sellers, retail sellers, and consumers. The platform facilitates a multi-layered marketplace where wholesalers can list products for retailers, and retailers, in turn, can manage their inventory and sell directly to consumers. The application leverages a modern tech stack to provide real-time updates, secure authentication, and location-based services with a clear separation between frontend and backend responsibilities.
 
 ## Key Features
 
@@ -33,6 +33,33 @@ The source code is organized into a feature-first architecture:
 * **lib/features/retail_seller**: Interface for retail business owners to manage products and fulfill consumer orders.
 * **lib/features/wholesale_seller**: Interface for wholesalers to manage bulk product listings.
 * **lib/features/chat**: Messaging infrastructure for real-time communication.
+
+## Architecture Overview
+
+The application follows a client-server architecture:
+
+- **Frontend (Flutter)**  
+  Handles UI rendering, user interactions, and client-side state management using Riverpod.
+
+- **Backend (Supabase + Firebase)**  
+  Manages authentication, database operations, storage, and real-time updates.
+
+- **Communication**  
+  The frontend interacts with backend services via API calls and real-time subscriptions.
+
+- **Feature-Based Structure**  
+  Each feature module encapsulates its UI, logic, and state handling for scalability and maintainability.
+
+## Frontend Responsibilities
+
+The frontend layer of the application includes:
+
+- Building UI components and screens using Flutter
+- Managing application state with Riverpod
+- Handling user interactions and navigation flows
+- Integrating backend APIs and rendering dynamic data
+- Managing asynchronous data loading and error handling
+- Ensuring responsive and consistent UI across different features
 
 ## Getting Started
 
@@ -76,3 +103,6 @@ The project utilizes several asset categories defined in the configuration:
 * **assets/images/**: General application imagery and icons.
 * **assets/setup/**: Assets related to the initial user onboarding and setup process.
 * **assets/splash/**: Visuals for the application launch screen.
+
+## Notes
+Due to the development workflow used during the project, commits were pushed from a single system. This [document](https://github.com/sudhanva-bh/local.ly/blob/main/docs/contribution.md) reflects our actual development contributions to the project.
